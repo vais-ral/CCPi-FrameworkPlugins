@@ -1,0 +1,27 @@
+package:
+  name: ccpi-plugins
+  version: {{ environ['CIL_VERSION'] }}
+
+
+build:
+  preserve_egg_dir: False
+  script_env:
+    - CIL_VERSION   
+#  number: 0
+  
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+    - numpy
+    - ccpi-framework
+    - ccpi-reconstruction
+    - matplotlib
+	
+about:
+  home: http://www.ccpi.ac.uk
+  license:  Apache 2.0 License
+  summary: 'CCPi Framework Plugins'
