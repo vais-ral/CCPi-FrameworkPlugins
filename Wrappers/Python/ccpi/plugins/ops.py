@@ -19,49 +19,61 @@
 
 import numpy
 from ccpi.optimisation.ops import Operator, PowerMethodNonsquare
-from ccpi.framework import ImageData, DataContainer
-from ccpi.plugins.processors import CCPiBackwardProjector, CCPiForwardProjector
-
-class LinearOperatorMatrix(Operator):
-    def __init__(self,A):
-        self.A = A
-        self.s1 = None   # Largest singular value, initially unknown
-        super(LinearOperatorMatrix, self).__init__()
-        
-    def direct(self,x):
-        return DataContainer(numpy.dot(self.A,x.as_array()))
-    
-    def adjoint(self,x):
-        return DataContainer(numpy.dot(self.A.transpose(),x.as_array()))
-    
-    def size(self):
-        return self.A.shape
-    
-    def get_max_sing_val(self):
-        # If unknown, compute and store. If known, simply return it.
-        if self.s1 is None:
-            self.s1 = svds(self.A,1,return_singular_vectors=False)[0]
-            return self.s1
-        else:
-            return self.s1
+from ccpi.framework import ImageData, DataContainer , \
+                           ImageGeometry, AcquisitionGeometry
+from ccpi.plugins.processors import CCPiBackwardProjector, \
+                                    CCPiForwardProjector , setupCCPiGeometries
         
 
 
 class CCPiProjectorSimple(Operator):
     """ASTRA projector modified to use DataSet and geometry."""
-    def __init__(self, geomv, geomp):
+    def __init__(self, geomv, geomp, default=False):
         super(CCPiProjectorSimple, self).__init__()
         
         # Store volume and sinogram geometries.
         self.acquisition_geometry = geomp
         self.volume_geometry = geomv
         
-        self.fp = CCPiForwardProjector(image_geometry=geomv,
-                                       acquisition_geometry=geomp,
+        if geomp.geom_type == "cone":
+            raise TypeError('Can only handle parallel beam')
+        
+        # set-up the geometries if compatible
+        geoms = setupCCPiGeometries(geomv.voxel_num_x,geomv.voxel_num_y, 
+                                    geomv.voxel_num_z, geomp.angles, 0)
+        
+
+        vg = ImageGeometry(voxel_num_x=geoms['output_volume_x'],
+                           voxel_num_y=geoms['output_volume_y'], 
+                           voxel_num_z=geoms['output_volume_z'])
+
+        pg = AcquisitionGeometry('parallel',
+                          '3D',
+                          geomp.angles,
+                          geoms['n_h'], geomp.pixel_size_h,
+                          geoms['n_v'], geomp.pixel_size_v #2D in 3D is a slice 1 pixel thick
+                          )
+        if not default:
+            # check if geometry is the same (on the voxels)
+            if not ( vg.voxel_num_x == geomv.voxel_num_x and \
+                     vg.voxel_num_y == geomv.voxel_num_y and \
+                     vg.voxel_num_z == geomv.voxel_num_z ):
+                msg = 'The required volume geometry will not work\nThe following would\n'
+                msg += vg.__str__()
+                raise ValueError(msg)
+            if not (pg.pixel_num_h == geomp.pixel_num_h and \
+                    pg.pixel_num_v == geomp.pixel_num_v and \
+                    len( pg.angles ) == len( geomp.angles ) ) :
+                msg = 'The required acquisition geometry will not work\nThe following would\n'
+                msg += pg.__str__()
+                raise ValueError(msg)
+        
+        self.fp = CCPiForwardProjector(image_geometry=vg,
+                                       acquisition_geometry=pg,
                                        output_axes_order=['angle','vertical','horizontal'])
         
-        self.bp = CCPiBackwardProjector(image_geometry=geomv,
-                                    acquisition_geometry=geomp,
+        self.bp = CCPiBackwardProjector(image_geometry=vg,
+                                    acquisition_geometry=pg,
                                     output_axes_order=['horizontal_x','horizontal_y','vertical'])
                 
         # Initialise empty for singular value.
