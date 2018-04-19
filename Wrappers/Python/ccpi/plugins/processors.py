@@ -27,6 +27,51 @@ from scipy import ndimage
 import matplotlib.pyplot as plt
 
 
+def setupCCPiGeometries(voxel_num_x, voxel_num_y, voxel_num_z, angles, counter):
+    
+    vg = ImageGeometry(voxel_num_x=voxel_num_x,voxel_num_y=voxel_num_y, voxel_num_z=voxel_num_z)
+    Phantom_ccpi = ImageData(geometry=vg,
+                        dimension_labels=['horizontal_x','horizontal_y','vertical'])
+    #.subset(['horizontal_x','horizontal_y','vertical'])
+    # ask the ccpi code what dimensions it would like
+        
+    voxel_per_pixel = 1
+    geoms = pbalg.pb_setup_geometry_from_image(Phantom_ccpi.as_array(),
+                                                angles,
+                                                voxel_per_pixel )
+    
+    pg = AcquisitionGeometry('parallel',
+                              '3D',
+                              angles,
+                              geoms['n_h'], 1.0,
+                              geoms['n_v'], 1.0 #2D in 3D is a slice 1 pixel thick
+                              )
+    
+    center_of_rotation = Phantom_ccpi.get_dimension_size('horizontal_x') / 2
+    ad = AcquisitionData(geometry=pg,dimension_labels=['angle','vertical','horizontal'])
+    geoms_i = pbalg.pb_setup_geometry_from_acquisition(ad.as_array(),
+                                                angles,
+                                                center_of_rotation,
+                                                voxel_per_pixel )
+
+    #print (counter)
+    counter+=1
+    #print (geoms , geoms_i)
+    if counter < 4:
+        if (not ( geoms_i == geoms )):
+            print ("not equal and {0}".format(counter))
+            X = max(geoms['output_volume_x'], geoms_i['output_volume_x'])
+            Y = max(geoms['output_volume_y'], geoms_i['output_volume_y'])
+            Z = max(geoms['output_volume_z'], geoms_i['output_volume_z'])
+            return setupCCPiGeometries(X,Y,Z,angles, counter)
+        else:
+            print ("return geoms {0}".format(geoms))
+            return geoms
+    else:
+        print ("return geoms_i {0}".format(geoms_i))
+        return geoms_i
+
+
 class CCPiForwardProjector(DataProcessor):
     '''Normalization based on flat and dark
     

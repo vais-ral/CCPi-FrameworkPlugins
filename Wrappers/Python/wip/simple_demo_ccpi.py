@@ -8,7 +8,6 @@ from ccpi.optimisation.funcs import Norm2sq, Norm1 , TV2D
 
 from ccpi.plugins.ops import CCPiProjectorSimple
 from ccpi.plugins.processors import CCPiForwardProjector, CCPiBackwardProjector 
-
 from ccpi.reconstruction.parallelbeam import alg as pbalg
 
 import numpy as np
@@ -18,7 +17,7 @@ test_case = 1   # 1=parallel2D, 2=cone2D, 3=parallel3D
 
 # Set up phantom
 N = 128
-vert = 1
+vert = 4
 # Set up measurement geometry
 angles_num = 20; # angles number
 det_w = 1.0
@@ -38,71 +37,28 @@ elif test_case == 3:
 else:
     NotImplemented
 
+vg = ImageGeometry(voxel_num_x=N,
+                   voxel_num_y=N, 
+                   voxel_num_z=vert)
 
-def setupCCPiGeometries(voxel_num_x, voxel_num_y, voxel_num_z, angles, counter):
-    vg = ImageGeometry(voxel_num_x=voxel_num_x,voxel_num_y=voxel_num_y, voxel_num_z=voxel_num_z)
-    Phantom_ccpi = ImageData(geometry=vg,
-                        dimension_labels=['horizontal_x','horizontal_y','vertical'])
-    #.subset(['horizontal_x','horizontal_y','vertical'])
-    # ask the ccpi code what dimensions it would like
-        
-    voxel_per_pixel = 1
-    geoms = pbalg.pb_setup_geometry_from_image(Phantom_ccpi.as_array(),
-                                                angles,
-                                                voxel_per_pixel )
-    
-    pg = AcquisitionGeometry('parallel',
-                              '3D',
-                              angles,
-                              geoms['n_h'],det_w,
-                              geoms['n_v'], det_w #2D in 3D is a slice 1 pixel thick
-                              )
-    
-    center_of_rotation = Phantom_ccpi.get_dimension_size('horizontal_x') / 2
-    ad = AcquisitionData(geometry=pg,dimension_labels=['angle','vertical','horizontal'])
-    geoms_i = pbalg.pb_setup_geometry_from_acquisition(ad.as_array(),
-                                                angles,
-                                                center_of_rotation,
-                                                voxel_per_pixel )
-
-    #print (counter)
-    counter+=1
-    #print (geoms , geoms_i)
-    if counter < 4:
-        if (not ( geoms_i == geoms )):
-            print ("not equal and {0}".format(counter))
-            X = max(geoms['output_volume_x'], geoms_i['output_volume_x'])
-            Y = max(geoms['output_volume_y'], geoms_i['output_volume_y'])
-            Z = max(geoms['output_volume_z'], geoms_i['output_volume_z'])
-            return setupCCPiGeometries(X,Y,Z,angles, counter)
-        else:
-            print ("return geoms {0}".format(geoms))
-            return geoms
-    else:
-        print ("return geoms_i {0}".format(geoms_i))
-        return geoms_i
-
-geoms = setupCCPiGeometries(N,N,vert,angles,0)
-#%%
-#geoms = {'n_v': 12, 'output_volume_y': 128, 'n_angles': 20, 
-# 'output_volume_x': 128, 'output_volume_z': 12, 'n_h': 128}
-vg = ImageGeometry(voxel_num_x=geoms['output_volume_x'],
-                   voxel_num_y=geoms['output_volume_y'], 
-                   voxel_num_z=geoms['output_volume_z'])
 Phantom = ImageData(geometry=vg,dimension_labels=['horizontal_x','horizontal_y','vertical']) + 0.1
     
-
-#x = Phantom.as_array()
 i = 0
-while i < geoms['n_v']:
-    #x = Phantom.subset(vertical=i, dimensions=['horizontal_x','horizontal_y']).array
-    x = Phantom.subset(vertical=i).array
+while i < vert:
+    if vert > 1:
+        x = Phantom.subset(vertical=i).array
+    else:
+        x = Phantom.array
     x[round(N/4):round(3*N/4),round(N/4):round(3*N/4)] = 0.5
     x[round(N/8):round(7*N/8),round(3*N/8):round(5*N/8)] = 0.98
-    Phantom.fill(x, vertical=i)
+    if vert > 1 :
+        Phantom.fill(x, vertical=i)
     i += 1
 
-plt.imshow(Phantom.subset(vertical=0).as_array())
+if vert > 1:
+    plt.imshow(Phantom.subset(vertical=0).as_array())
+else:
+    plt.imshow(Phantom.as_array())
 plt.show()
 
 
@@ -116,8 +72,8 @@ if test_case==1:
     pg = AcquisitionGeometry('parallel',
                           '3D',
                           angles,
-                          geoms['n_h'],det_w,
-                          geoms['n_v'], det_w #2D in 3D is a slice 1 pixel thick
+                          N , det_w,
+                          vert , det_w #2D in 3D is a slice 1 pixel thick
                           )
 elif test_case==2:
     raise NotImplemented('cone beam projector not yet available')
