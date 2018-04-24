@@ -109,6 +109,5 @@ class CCPiProjectorSimple(Operator):
         x0 = ImageData(geometry = self.volume_geometry, 
                        dimension_labels=self.bp.output_axes_order)#\
                        #.subset(['horizontal_x','horizontal_y','vertical'])
-        print (x0)
         x0.fill(numpy.random.randn(*x0.shape))
         return x0
