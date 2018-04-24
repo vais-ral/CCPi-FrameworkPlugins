@@ -1,48 +1,44 @@
-#import sys
-#sys.path.append("..")
 
-from ccpi.framework import ImageData , AcquisitionData, ImageGeometry, AcquisitionGeometry
+# This demo illustrates how CCPi 2D parallel-beam projectors can be used with
+# the modular optimisation framework. The demo sets up a small 4-slice 3D test 
+# case and demonstrates reconstruction using CGLS, as well as FISTA for least 
+# squares and 1-norm regularisation and FBPD for 1-norm regularisation.
+
+# First make all imports
+from ccpi.framework import ImageData, AcquisitionData, ImageGeometry, \
+                           AcquisitionGeometry
 
 from ccpi.optimisation.algs import FISTA, FBPD, CGLS
-from ccpi.optimisation.funcs import Norm2sq, Norm1 , TV2D
+from ccpi.optimisation.funcs import Norm2sq, Norm1, TV2D
 
 from ccpi.plugins.ops import CCPiProjectorSimple
 from ccpi.plugins.processors import CCPiForwardProjector, CCPiBackwardProjector 
+
 from ccpi.reconstruction.parallelbeam import alg as pbalg
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-test_case = 1   # 1=parallel2D, 2=cone2D, 3=parallel3D
+# Set up phantom size N x N x vert by creating ImageGeometry, initialising the 
+# ImageData object with this geometry and empty array and finally put some
+# data into its array, and display one slice as image.
 
-# Set up phantom
+# Image parameters
 N = 128
 vert = 4
-# Set up measurement geometry
-angles_num = 20; # angles number
-det_w = 1.0
-det_num = N
-SourceOrig = 200
-OrigDetec = 0
 
-if test_case==1:
-    angles = np.linspace(0,np.pi,angles_num,endpoint=False,dtype=np.float32)*180/np.pi
-    #nangles = angles_num
-    #angles = np.linspace(0,360, nangles, dtype=np.float32)
-
-elif test_case==2:
-    angles = np.linspace(0,2*np.pi,angles_num,endpoint=False)
-elif test_case == 3:
-    angles = np.linspace(0,np.pi,angles_num,endpoint=False)
-else:
-    NotImplemented
-
-vg = ImageGeometry(voxel_num_x=N,
+# Set up image geometry
+ig = ImageGeometry(voxel_num_x=N,
                    voxel_num_y=N, 
                    voxel_num_z=vert)
 
-Phantom = ImageData(geometry=vg,dimension_labels=['horizontal_x','horizontal_y','vertical']) + 0.1
-    
+# Set up empty image data
+Phantom = ImageData(geometry=ig,
+                    dimension_labels=['horizontal_x',
+                                      'horizontal_y',
+                                      'vertical'])
+
+# Populate image data by looping over and filling slices
 i = 0
 while i < vert:
     if vert > 1:
@@ -55,6 +51,7 @@ while i < vert:
         Phantom.fill(x, vertical=i)
     i += 1
 
+# Display slice of phantom
 if vert > 1:
     plt.imshow(Phantom.subset(vertical=0).as_array())
 else:
@@ -62,33 +59,28 @@ else:
 plt.show()
 
 
+# Set up AcquisitionGeometry object to hold the parameters of the measurement
+# setup geometry: # Number of angles, the actual angles from 0 to 
+# pi for parallel beam, set the width of a detector 
+# pixel relative to an object pixe and the number of detector pixels.
+angles_num = 20; # angles number
+det_w = 1.0
+det_num = N
 
-# Parallelbeam geometry test
-if test_case==1:
-    #Phantom_ccpi = Phantom.subset(['horizontal_x','horizontal_y','vertical'])
-    #Phantom_ccpi.geometry = vg.clone()
-    center_of_rotation = Phantom.get_dimension_size('horizontal_x') / 2
-        
-    pg = AcquisitionGeometry('parallel',
-                          '3D',
-                          angles,
-                          N , det_w,
-                          vert , det_w #2D in 3D is a slice 1 pixel thick
-                          )
-elif test_case==2:
-    raise NotImplemented('cone beam projector not yet available')
-    pg = AcquisitionGeometry('cone',
-                          '2D',
-                          angles,
-                          det_num,
-                          det_w,
-                          vert, det_w, #2D in 3D is a slice 1 pixel thick 
-                          dist_source_center=SourceOrig, 
-                          dist_center_detector=OrigDetec)
+angles = np.linspace(0,np.pi,angles_num,endpoint=False,dtype=np.float32)*180/np.pi
 
-# ASTRA operator using volume and sinogram geometries
-#Aop = AstraProjectorSimple(vg, pg, 'cpu')
-Cop = CCPiProjectorSimple(vg, pg)
+#center_of_rotation = Phantom.get_dimension_size('horizontal_x') / 2
+
+ag = AcquisitionGeometry('parallel',
+                         '3D',
+                         angles,
+                         N, 
+                         det_w,
+                         vert,
+                         det_w)
+
+# CCPi operator using image and acquisition geometries
+Cop = CCPiProjectorSimple(ig, ag)
 
 # Try forward and backprojection
 b = Cop.direct(Phantom)
