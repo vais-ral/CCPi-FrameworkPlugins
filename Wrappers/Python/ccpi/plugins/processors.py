@@ -17,15 +17,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License
 
-from ccpi.framework import DataProcessor, DataContainer, AcquisitionData,\
- AcquisitionGeometry, ImageGeometry, ImageData
+from ccpi.framework import DataProcessor, AcquisitionData,\
+     AcquisitionGeometry, ImageGeometry, ImageData
 from ccpi.reconstruction.parallelbeam import alg as pbalg
 import numpy
-import h5py
-from scipy import ndimage
-
-import matplotlib.pyplot as plt
-
 
 def setupCCPiGeometries(voxel_num_x, voxel_num_y, voxel_num_z, angles, counter):
     
@@ -53,10 +48,9 @@ def setupCCPiGeometries(voxel_num_x, voxel_num_y, voxel_num_z, angles, counter):
                                                 angles,
                                                 center_of_rotation,
                                                 voxel_per_pixel )
-
-    #print (counter)
+    
     counter+=1
-    #print (geoms , geoms_i)
+    
     if counter < 4:
         if (not ( geoms_i == geoms )):
             print ("not equal and {0}".format(counter))
@@ -65,10 +59,8 @@ def setupCCPiGeometries(voxel_num_x, voxel_num_y, voxel_num_z, angles, counter):
             Z = max(geoms['output_volume_z'], geoms_i['output_volume_z'])
             return setupCCPiGeometries(X,Y,Z,angles, counter)
         else:
-            print ("return geoms {0}".format(geoms))
             return geoms
     else:
-        print ("return geoms_i {0}".format(geoms_i))
         return geoms_i
 
 
@@ -119,18 +111,6 @@ class CCPiForwardProjector(DataProcessor):
         pixel_per_voxel = 1 # should be estimated from image_geometry and 
                             # acquisition_geometry
         if self.acquisition_geometry.geom_type == 'parallel':
-            #int msize = ndarray_volume.shape(0) > ndarray_volume.shape(1) ? ndarray_volume.shape(0) : ndarray_volume.shape(1);
-        	  #int detector_width = msize;
-            # detector_width is the max between the shape[0] and shape[1]
-            
-            
-            #double rotation_center = (double)detector_width/2.;
-        	  #int detector_height = ndarray_volume.shape(2);
-        	  
-            #int number_of_projections = ndarray_angles.shape(0);
-        	
-            ##numpy_3d pixels(reinterpret_cast<float*>(ndarray_volume.get_data()),
-		     #boost::extents[number_of_projections][detector_height][detector_width]);
 
             pixels = pbalg.pb_forward_project(volume.as_array(), 
                                                   self.acquisition_geometry.angles, 
@@ -179,7 +159,6 @@ class CCPiBackwardProjector(DataProcessor):
         
     def check_input(self, dataset):
         if dataset.number_of_dimensions == 3 or dataset.number_of_dimensions == 2:
-            #number_of_projections][detector_height][detector_width
             
             return True
         else:
@@ -198,7 +177,7 @@ class CCPiBackwardProjector(DataProcessor):
                                        voxel_num_z = self.acquisition_geometry.pixel_num_v)
         # input centered/padded acquisitiondata
         center_of_rotation = projections.get_dimension_size('horizontal') / 2
-        #print (center_of_rotation)
+        
         if self.acquisition_geometry.geom_type == 'parallel':
             back = pbalg.pb_backward_project(
                          projections.as_array(), 
