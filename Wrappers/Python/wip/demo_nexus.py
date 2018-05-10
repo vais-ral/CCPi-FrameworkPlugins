@@ -13,8 +13,7 @@ from ccpi.optimisation.algs import FISTA, FBPD, CGLS
 from ccpi.optimisation.funcs import Norm2sq, Norm1
 from ccpi.plugins.ops import CCPiProjectorSimple
 from ccpi.reconstruction.parallelbeam import alg as pbalg
-from ccpi.plugins.processors import CCPiForwardProjector, CCPiBackwardProjector
-from ccpi.processors import Normalizer , CenterOfRotationFinder , AcquisitionDataPadder
+from ccpi.processors import Normalizer, CenterOfRotationFinder, AcquisitionDataPadder
 from ccpi.io.reader import NexusReader
 
 # All external imports
@@ -86,12 +85,12 @@ print ("Initial guess")
 x_init = ImageData(geometry=ig, dimension_labels=['horizontal_x','horizontal_y','vertical'])
         
 # Run FISTA reconstruction for least squares without regularization
-print ("run FISTA for least squares")
+print ("Run FISTA for least squares")
 opt = {'tol': 1e-4, 'iter': 10}
 x_fista0, it0, timing0, criter0 = FISTA(x_init, f, None, opt=opt)
 
 plt.imshow(x_fista0.subset(horizontal_x=80).array)
-plt.title('FISTA0')
+plt.title('FISTA LS')
 plt.show()
 
 # Set up 1-norm function for FISTA least squares plus 1-norm regularisation
@@ -103,7 +102,7 @@ g0 = Norm1(lam)
 x_fista1, it1, timing1, criter1 = FISTA(x_init, f, g0,opt=opt)
 
 plt.imshow(x_fista0.subset(horizontal_x=80).array)
-plt.title('FISTA1')
+plt.title('FISTA LS+1')
 plt.show()
 
 # Run FBPD=Forward Backward Primal Dual method on least squares plus 1-norm
@@ -111,7 +110,7 @@ print ("Run FBPD for least squares plus 1-norm regularisation")
 x_fbpd1, it_fbpd1, timing_fbpd1, criter_fbpd1 = FBPD(x_init,None,f,g0,opt=opt)
 
 plt.imshow(x_fbpd1.subset(horizontal_x=80).array)
-plt.title('FBPD1')
+plt.title('FBPD LS+1')
 plt.show()
 
 # Run CGLS, which should agree with the FISTA least squares
