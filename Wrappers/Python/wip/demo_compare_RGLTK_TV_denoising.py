@@ -153,18 +153,18 @@ plt.axis('off')
 
 current = current + 1
 a=fig.add_subplot(rows,cols,current)
-a.set_title('FISTA LS+1')
+a.set_title('FBPD - CVX')
 imgplot = plt.imshow(x_fbpdtv_denoise.as_array()-xtv_denoise.value,vmin=dlims[0],vmax=dlims[1])
 plt.axis('off')
 
 current = current + 1
 a=fig.add_subplot(rows,cols,current)
-a.set_title('FBPD LS+1')
+a.set_title('ROF - TV')
 imgplot = plt.imshow(xtv_rof.as_array()-xtv_denoise.value,vmin=dlims[0],vmax=dlims[1])
 plt.axis('off')
 
 current = current + 1
 a=fig.add_subplot(rows,cols,current)
-a.set_title('FBPD TV')
+a.set_title('FGP - TV')
 imgplot = plt.imshow(xtv_fgp.as_array()-xtv_denoise.value,vmin=dlims[0],vmax=dlims[1])
 plt.axis('off')
