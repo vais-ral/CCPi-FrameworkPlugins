@@ -8,10 +8,10 @@ Created on Wed Mar 21 14:26:21 2018
 from ccpi.framework import ImageData , AcquisitionData, ImageGeometry, AcquisitionGeometry
 from ccpi.optimisation.algs import FISTA, FBPD, CGLS
 from ccpi.optimisation.funcs import Norm2sq, Norm1
-from ccpi.reconstruction.ccpiops import CCPiProjectorSimple
+from ccpi.plugins.ops import CCPiProjectorSimple
 from ccpi.reconstruction.parallelbeam import alg as pbalg
-from ccpi.reconstruction.processors import CCPiForwardProjector, CCPiBackwardProjector , \
-Normalizer , CenterOfRotationFinder , AcquisitionDataPadder
+from ccpi.plugins.processors import CCPiForwardProjector, CCPiBackwardProjector
+from ccpi.processors import Normalizer , CenterOfRotationFinder , AcquisitionDataPadder
 
 from ccpi.io.reader import NexusReader
 
@@ -31,7 +31,7 @@ def avg_img(image):
     return avg
     
 
-reader = NexusReader(os.path.join(".." ,".." ,".." , "data" , "24737_fd.nxs" ))
+reader = NexusReader(os.path.join(".." ,".." ,".." , "..", "CCPi-ReconstructionFramework","data" , "24737_fd.nxs" ))
 
 dims = reader.get_projection_dimensions()
 print (dims)
