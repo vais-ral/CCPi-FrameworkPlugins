@@ -12,7 +12,6 @@ from ccpi.framework import ImageData, AcquisitionData, ImageGeometry, Acquisitio
 from ccpi.optimisation.algs import FISTA, FBPD, CGLS
 from ccpi.optimisation.funcs import Norm2sq, Norm1
 from ccpi.plugins.ops import CCPiProjectorSimple
-from ccpi.reconstruction.parallelbeam import alg as pbalg
 from ccpi.processors import Normalizer, CenterOfRotationFinder, AcquisitionDataPadder
 from ccpi.io.reader import NexusReader
 
@@ -62,15 +61,10 @@ padder.set_input(norm.get_output())
 padded_data = padder.get_output()
 
 # Create Acquisition and Image Geometries for setting up projector.
-voxel_per_pixel = 1
 ag = padded_data.geometry
-geoms = pbalg.pb_setup_geometry_from_acquisition(padded_data.as_array(),
-                                                ag.angles,
-                                                center_of_rotation,
-                                                voxel_per_pixel )
-ig = ImageGeometry(voxel_num_x=geoms['output_volume_x'],
-                   voxel_num_y=geoms['output_volume_y'], 
-                   voxel_num_z=geoms['output_volume_z'])
+ig = ImageGeometry(voxel_num_x=ag.pixel_num_h,
+                   voxel_num_y=ag.pixel_num_h, 
+                   voxel_num_z=ag.pixel_num_v)
 
 # Define the projector object
 print ("Define projector")
