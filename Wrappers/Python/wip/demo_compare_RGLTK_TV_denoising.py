@@ -1,24 +1,26 @@
 
 from ccpi.framework import ImageData, ImageGeometry, AcquisitionGeometry, DataContainer
 from ccpi.optimisation.algs import FISTA, FBPD, CGLS
-from ccpi.optimisation.funcs import Norm2sq, ZeroFun, Norm1, TV2D
+from ccpi.optimisation.funcs import Norm2sq, ZeroFun, Norm1, TV2D, Identity
 
-from ccpi.optimisation.ops import LinearOperatorMatrix, Identity
+from ccpi.optimisation.ops import LinearOperatorMatrix
 
 from ccpi.plugins.regularisers import _ROF_TV_, _FGP_TV_
 
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+#%%
 # Requires CVXPY, see http://www.cvxpy.org/
 # CVXPY can be installed in anaconda using
 # conda install -c cvxgrp cvxpy libgcc
-
 # Whether to use or omit CVXPY
 use_cvxpy = True
 if use_cvxpy:
     from cvxpy import *
 
-import numpy as np
-import matplotlib.pyplot as plt
-
+#%%
 
 # Now try 1-norm and TV denoising with FBPD, first 1-norm.
 
@@ -93,6 +95,7 @@ x_fbpdtv_denoise, itfbpdtv_denoise, timingfbpdtv_denoise, criterfbpdtv_denoise =
 
 
 print("CVXPY least squares plus TV solution and objective value:")
+plt.figure()
 plt.imshow(x_fbpdtv_denoise.as_array())
 plt.title('FBPD TV')
 plt.show()
@@ -105,27 +108,30 @@ plt.loglog(criterfbpdtv_denoise, label='FBPD TV')
 plt.show()
 
 #%% FISTA with ROF-TV regularisation
-g_rof = _ROF_TV_(lambdaReg = lam_tv,iterationsTV=5000,tolerance=1e-5,time_marchstep=0.01,device='cpu')
+g_rof = _ROF_TV_(lambdaReg = lam_tv,iterationsTV=5000,tolerance=0,time_marchstep=0.001,device='cpu')
 
 xtv_rof = g_rof.prox(y,1.0)
 
 print("CCPi-RGL TV ROF:")
+plt.figure()
 plt.imshow(xtv_rof.as_array())
 plt.title('ROF TV prox')
 plt.show()
-print(g_rof(xtv_rof))
+print(g_rof(xtv_rof,y,typeEnergy=1))
 
 #%% FISTA with FGP-TV regularisation
-g_fgp = _FGP_TV_(lambdaReg = lam_tv,iterationsTV=5000,tolerance=1e-5,methodTV=0,nonnegativity=0,printing=0,device='cpu')
+g_fgp = _FGP_TV_(lambdaReg = lam_tv,iterationsTV=5000,tolerance=1e-7,methodTV=0,nonnegativity=0,printing=0,device='cpu')
 
 xtv_fgp = g_fgp.prox(y,1.0)
 
 print("CCPi-RGL TV FGP:")
+plt.figure()
 plt.imshow(xtv_fgp.as_array())
 plt.title('FGP TV prox')
 plt.show()
-print(g_fgp(xtv_fgp))
+print(g_fgp(xtv_fgp,y,typeEnergy=1))
 
+#%%
 # Compare all reconstruction
 clims = (-0.2,1.2)
 dlims = (-0.2,0.2)

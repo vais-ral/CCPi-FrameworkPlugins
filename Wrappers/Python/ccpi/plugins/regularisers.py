@@ -25,7 +25,6 @@ from ccpi.optimisation.ops import Operator
 import numpy as np
 
 
-
 class _ROF_TV_(Operator):
     def __init__(self,lambdaReg,iterationsTV,tolerance,time_marchstep,device):
         # set parameters
@@ -33,9 +32,10 @@ class _ROF_TV_(Operator):
         self.iterationsTV = iterationsTV
         self.time_marchstep = time_marchstep
         self.device = device # string for 'cpu' or 'gpu'
-    def __call__(self,x):
+    def __call__(self,x,x1,typeEnergy):
         # evaluate objective function of TV gradient
-        EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
+        # typeEnergy is either 1 (LS + TV for denoising) or 2 (just TV fidelity)
+        EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x1.as_array(), dtype=np.float32), self.lambdaReg, typeEnergy)
         return EnergyValTV
     def prox(self,x,Lipshitz):
         pars = {'algorithm' : ROF_TV, \
@@ -60,9 +60,10 @@ class _FGP_TV_(Operator):
         self.nonnegativity = nonnegativity
         self.printing = printing
         self.device = device # string for 'cpu' or 'gpu'
-    def __call__(self,x):
+    def __call__(self,x,x1,typeEnergy):
         # evaluate objective function of TV gradient
-        EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
+        # typeEnergy is either 1 (LS + TV for denoising) or 2 (just TV fidelity)
+        EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x1.as_array(), dtype=np.float32), self.lambdaReg, typeEnergy)
         return EnergyValTV
     def prox(self,x,Lipshitz):
         pars = {'algorithm' : FGP_TV, \
@@ -93,9 +94,10 @@ class _SB_TV_(Operator):
         self.methodTV = methodTV
         self.printing = printing
         self.device = device # string for 'cpu' or 'gpu'
-    def __call__(self,x):
+    def __call__(self,x,typeEnergy):
         # evaluate objective function of TV gradient
-        EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
+        # typeEnergy is either 1 (LS + TV for denoising) or 2 (just TV fidelity)
+        EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, typeEnergy)
         return EnergyValTV
     def prox(self,x,Lipshitz):
         pars = {'algorithm' : SB_TV, \
