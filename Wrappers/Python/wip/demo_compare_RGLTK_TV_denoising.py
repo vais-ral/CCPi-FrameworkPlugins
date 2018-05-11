@@ -5,7 +5,7 @@ from ccpi.optimisation.funcs import Norm2sq, ZeroFun, Norm1, TV2D, Identity
 
 from ccpi.optimisation.ops import LinearOperatorMatrix
 
-from ccpi.plugins.regularisers import _ROF_TV_, _FGP_TV_
+from ccpi.plugins.regularisers import _ROF_TV_, _FGP_TV_, _SB_TV_
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -72,11 +72,11 @@ if use_cvxpy:
     # print(xtv_denoise.value)
     # print(objectivetv_denoise.value)
     
+plt.figure()
 plt.imshow(xtv_denoise.value)
-plt.title('CVX TV')
+plt.title('CVX TV  with objective equal to {:.2f}'.format(objectivetv_denoise.value))
 plt.show()
 print(objectivetv_denoise.value)
-
 
 #%% THen FBPD
 
@@ -97,7 +97,7 @@ x_fbpdtv_denoise, itfbpdtv_denoise, timingfbpdtv_denoise, criterfbpdtv_denoise =
 print("CVXPY least squares plus TV solution and objective value:")
 plt.figure()
 plt.imshow(x_fbpdtv_denoise.as_array())
-plt.title('FBPD TV')
+plt.title('FBPD TV with objective equal to {:.2f}'.format(criterfbpdtv_denoise[-1]))
 plt.show()
 
 print(criterfbpdtv_denoise[-1])
@@ -108,30 +108,45 @@ plt.loglog(criterfbpdtv_denoise, label='FBPD TV')
 plt.show()
 
 #%% FISTA with ROF-TV regularisation
-g_rof = _ROF_TV_(lambdaReg = lam_tv,iterationsTV=5000,tolerance=0,time_marchstep=0.001,device='cpu')
+g_rof = _ROF_TV_(lambdaReg = lam_tv,iterationsTV=5000,tolerance=0,time_marchstep=0.0009,device='cpu')
 
 xtv_rof = g_rof.prox(y,1.0)
 
 print("CCPi-RGL TV ROF:")
 plt.figure()
 plt.imshow(xtv_rof.as_array())
-plt.title('ROF TV prox')
+valObjRof = g_rof(xtv_rof)
+plt.title('ROF TV prox with objective equal to {:.2f}'.format(valObjRof[0]))
 plt.show()
-print(g_rof(xtv_rof,y,typeEnergy=1))
+print(valObjRof[0])
 
 #%% FISTA with FGP-TV regularisation
-g_fgp = _FGP_TV_(lambdaReg = lam_tv,iterationsTV=5000,tolerance=1e-7,methodTV=0,nonnegativity=0,printing=0,device='cpu')
+g_fgp = _FGP_TV_(lambdaReg = lam_tv,iterationsTV=5000,tolerance=0,methodTV=0,nonnegativity=0,printing=0,device='cpu')
 
 xtv_fgp = g_fgp.prox(y,1.0)
 
 print("CCPi-RGL TV FGP:")
 plt.figure()
 plt.imshow(xtv_fgp.as_array())
-plt.title('FGP TV prox')
+valObjFGP = g_fgp(xtv_fgp)
+plt.title('FGP TV prox with objective equal to {:.2f}'.format(valObjFGP[0]))
 plt.show()
-print(g_fgp(xtv_fgp,y,typeEnergy=1))
+print(valObjFGP[0])
+#%% Split-Bregman-TV regularisation
+g_sb = _SB_TV_(lambdaReg = lam_tv,iterationsTV=150,tolerance=0,methodTV=0,printing=0,device='cpu')
 
+xtv_sb = g_sb.prox(y,1.0)
+
+print("CCPi-RGL TV SB:")
+plt.figure()
+plt.imshow(xtv_sb.as_array())
+valObjSB = g_sb(xtv_sb)
+plt.title('SB TV prox with objective equal to {:.2f}'.format(valObjSB[0]))
+plt.show()
+print(valObjSB[0])
 #%%
+
+
 # Compare all reconstruction
 clims = (-0.2,1.2)
 dlims = (-0.2,0.2)

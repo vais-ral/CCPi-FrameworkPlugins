@@ -32,10 +32,10 @@ class _ROF_TV_(Operator):
         self.iterationsTV = iterationsTV
         self.time_marchstep = time_marchstep
         self.device = device # string for 'cpu' or 'gpu'
-    def __call__(self,x,x1,typeEnergy):
+    def __call__(self,x):
         # evaluate objective function of TV gradient
         # typeEnergy is either 1 (LS + TV for denoising) or 2 (just TV fidelity)
-        EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x1.as_array(), dtype=np.float32), self.lambdaReg, typeEnergy)
+        EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
         return EnergyValTV
     def prox(self,x,Lipshitz):
         pars = {'algorithm' : ROF_TV, \
@@ -60,10 +60,10 @@ class _FGP_TV_(Operator):
         self.nonnegativity = nonnegativity
         self.printing = printing
         self.device = device # string for 'cpu' or 'gpu'
-    def __call__(self,x,x1,typeEnergy):
+    def __call__(self,x):
         # evaluate objective function of TV gradient
         # typeEnergy is either 1 (LS + TV for denoising) or 2 (just TV fidelity)
-        EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x1.as_array(), dtype=np.float32), self.lambdaReg, typeEnergy)
+        EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
         return EnergyValTV
     def prox(self,x,Lipshitz):
         pars = {'algorithm' : FGP_TV, \
@@ -94,10 +94,10 @@ class _SB_TV_(Operator):
         self.methodTV = methodTV
         self.printing = printing
         self.device = device # string for 'cpu' or 'gpu'
-    def __call__(self,x,typeEnergy):
+    def __call__(self,x):
         # evaluate objective function of TV gradient
         # typeEnergy is either 1 (LS + TV for denoising) or 2 (just TV fidelity)
-        EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, typeEnergy)
+        EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
         return EnergyValTV
     def prox(self,x,Lipshitz):
         pars = {'algorithm' : SB_TV, \
