@@ -75,11 +75,13 @@ plt.title('CVX TV  with objective equal to {:.2f}'.format(objectivetv_denoise.va
 plt.show()
 print(objectivetv_denoise.value)
 
-#%% THen FBPD
-
+#%%
 # Data fidelity term
 f_denoise = Norm2sq(I,y,c=0.5)
 
+#%%
+
+#%% THen FBPD
 # Initial guess
 x_init_denoise = ImageData(np.zeros((N,N)))
 
@@ -112,9 +114,7 @@ xtv_rof = g_rof.prox(y,1.0)
 print("CCPi-RGL TV ROF:")
 plt.figure()
 plt.imshow(xtv_rof.as_array())
-valObjRof = g_rof(xtv_rof)
-data_energy = 0.5*np.sum(np.power((xtv_rof.as_array() - y.array),2))
-EnergytotalROF = data_energy + 0.5*valObjRof[0]
+EnergytotalROF = f_denoise(xtv_rof) + g_rof(xtv_rof)
 plt.title('ROF TV prox with objective equal to {:.2f}'.format(EnergytotalROF))
 plt.show()
 print(EnergytotalROF)
@@ -127,9 +127,7 @@ xtv_fgp = g_fgp.prox(y,1.0)
 print("CCPi-RGL TV FGP:")
 plt.figure()
 plt.imshow(xtv_fgp.as_array())
-valObjFGP = g_fgp(xtv_fgp)
-data_energy = 0.5*np.sum(np.power((xtv_fgp.as_array() - y.array),2))
-EnergytotalFGP = data_energy + 0.5*valObjFGP[0]
+EnergytotalFGP = f_denoise(xtv_fgp) + g_fgp(xtv_fgp)
 plt.title('FGP TV prox with objective equal to {:.2f}'.format(EnergytotalFGP))
 plt.show()
 print(EnergytotalFGP)
@@ -141,9 +139,7 @@ xtv_sb = g_sb.prox(y,1.0)
 print("CCPi-RGL TV SB:")
 plt.figure()
 plt.imshow(xtv_sb.as_array())
-valObjSB = g_sb(xtv_sb)
-data_energy = 0.5*np.sum(np.power((xtv_sb.as_array() - y.array),2))
-EnergytotalSB = data_energy + 0.5*valObjSB[0]
+EnergytotalSB = f_denoise(xtv_sb) + g_fgp(xtv_sb)
 plt.title('SB TV prox with objective equal to {:.2f}'.format(EnergytotalSB))
 plt.show()
 print(EnergytotalSB)
