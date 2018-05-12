@@ -149,7 +149,7 @@ print(EnergytotalSB)
 # Compare all reconstruction
 clims = (-0.2,1.2)
 dlims = (-0.2,0.2)
-cols = 3
+cols = 4
 rows = 2
 current = 1
 
@@ -173,18 +173,30 @@ plt.axis('off')
 
 current = current + 1
 a=fig.add_subplot(rows,cols,current)
+a.set_title('SB')
+imgplot = plt.imshow(xtv_sb.as_array(),vmin=clims[0],vmax=clims[1])
+plt.axis('off')
+
+current = current + 1
+a=fig.add_subplot(rows,cols,current)
 a.set_title('FBPD - CVX')
 imgplot = plt.imshow(x_fbpdtv_denoise.as_array()-xtv_denoise.value,vmin=dlims[0],vmax=dlims[1])
 plt.axis('off')
 
 current = current + 1
 a=fig.add_subplot(rows,cols,current)
-a.set_title('ROF - TV')
+a.set_title('ROF - CVX')
 imgplot = plt.imshow(xtv_rof.as_array()-xtv_denoise.value,vmin=dlims[0],vmax=dlims[1])
 plt.axis('off')
 
 current = current + 1
 a=fig.add_subplot(rows,cols,current)
-a.set_title('FGP - TV')
+a.set_title('FGP - CVX')
 imgplot = plt.imshow(xtv_fgp.as_array()-xtv_denoise.value,vmin=dlims[0],vmax=dlims[1])
+plt.axis('off')
+
+current = current + 1
+a=fig.add_subplot(rows,cols,current)
+a.set_title('SB - CVX')
+imgplot = plt.imshow(xtv_sb.as_array()-xtv_denoise.value,vmin=dlims[0],vmax=dlims[1])
 plt.axis('off')
