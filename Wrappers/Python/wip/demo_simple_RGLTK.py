@@ -8,7 +8,7 @@ from ccpi.framework import ImageData , ImageGeometry, AcquisitionGeometry
 from ccpi.optimisation.algs import FISTA, FBPD, CGLS
 from ccpi.optimisation.funcs import Norm2sq, Norm1, TV2D
 from ccpi.astra.ops import AstraProjectorSimple
-from ccpi.plugins.regularisers import _ROF_TV_, _FGP_TV_
+from ccpi.plugins.regularisers import _ROF_TV_, _FGP_TV_, _SB_TV_
 
 # All external imports
 import numpy as np
@@ -145,9 +145,27 @@ plt.subplot(122)
 plt.semilogy(criter_fgp)
 plt.show()
 
+# Repeat for SB variant.
+g_sb = _SB_TV_(lambdaReg = lamtv,
+                 iterationsTV=50,
+                 tolerance=1e-5,
+                 methodTV=0,
+                 printing=0,
+                 device='cpu')
+
+x_fista_sb, it1, timing1, criter_sb = FISTA(x_init, f, g_sb,opt)
+
+plt.figure()
+plt.subplot(121)
+plt.imshow(x_fista_sb.array)
+plt.title('FISTA SB TV')
+plt.subplot(122)
+plt.semilogy(criter_sb)
+plt.show()
+
 # Compare all reconstruction and criteria
 clims = (0,1)
-cols = 3
+cols = 4
 rows = 1
 current = 1
 fig = plt.figure()
@@ -166,6 +184,11 @@ a=fig.add_subplot(rows,cols,current)
 a.set_title('FISTA FGP TV')
 imgplot = plt.imshow(x_fista_fgp.as_array(),vmin=clims[0],vmax=clims[1])
 
+current = current + 1
+a=fig.add_subplot(rows,cols,current)
+a.set_title('FISTA SB TV')
+imgplot = plt.imshow(x_fista_sb.as_array(),vmin=clims[0],vmax=clims[1])
+
 fig = plt.figure()
 
 b=fig.add_subplot(1,1,1)
@@ -173,5 +196,6 @@ b.set_title('criteria')
 imgplot = plt.loglog(criter_fbpdtv , label='FBPD TV')
 imgplot = plt.loglog(criter_rof , label='ROF TV')
 imgplot = plt.loglog(criter_fgp, label='FGP TV')
+imgplot = plt.loglog(criter_sb, label='SB TV')
 b.legend(loc='right')
 plt.show()
