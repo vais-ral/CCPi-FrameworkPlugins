@@ -87,7 +87,7 @@ f = Norm2sq(Aop,b,c=0.5)
 x_init = ImageData(np.zeros(x.shape),geometry=ig)
 
 # Set up FBPD algorithm for TV reconstruction and solve
-opt_FBPD = {'tol': 1e-4, 'iter': 10000}
+opt_FBPD = {'tol': 1e-4, 'iter': 20000}
 
 lamtv = 1.0
 gtv = TV2D(lamtv)
