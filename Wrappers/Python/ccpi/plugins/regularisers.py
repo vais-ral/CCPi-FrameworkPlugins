@@ -25,7 +25,6 @@ from ccpi.optimisation.ops import Operator
 import numpy as np
 
 
-
 class _ROF_TV_(Operator):
     def __init__(self,lambdaReg,iterationsTV,tolerance,time_marchstep,device):
         # set parameters
@@ -36,7 +35,7 @@ class _ROF_TV_(Operator):
     def __call__(self,x):
         # evaluate objective function of TV gradient
         EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
-        return EnergyValTV
+        return 0.5*EnergyValTV[0]
     def prox(self,x,Lipshitz):
         pars = {'algorithm' : ROF_TV, \
                'input' : np.asarray(x.as_array(), dtype=np.float32),\
@@ -63,7 +62,7 @@ class _FGP_TV_(Operator):
     def __call__(self,x):
         # evaluate objective function of TV gradient
         EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
-        return EnergyValTV
+        return 0.5*EnergyValTV[0]
     def prox(self,x,Lipshitz):
         pars = {'algorithm' : FGP_TV, \
                'input' : np.asarray(x.as_array(), dtype=np.float32),\
@@ -96,7 +95,7 @@ class _SB_TV_(Operator):
     def __call__(self,x):
         # evaluate objective function of TV gradient
         EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
-        return EnergyValTV
+        return 0.5*EnergyValTV[0]
     def prox(self,x,Lipshitz):
         pars = {'algorithm' : SB_TV, \
                'input' : np.asarray(x.as_array(), dtype=np.float32),\
