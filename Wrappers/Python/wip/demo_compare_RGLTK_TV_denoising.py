@@ -1,16 +1,13 @@
 
 from ccpi.framework import ImageData, ImageGeometry, AcquisitionGeometry, DataContainer
 from ccpi.optimisation.algs import FISTA, FBPD, CGLS
-from ccpi.optimisation.funcs import Norm2sq, ZeroFun, Norm1, TV2D, Identity
-
-from ccpi.optimisation.ops import LinearOperatorMatrix
+from ccpi.optimisation.funcs import Norm2sq, ZeroFun, Norm1, TV2D
+from ccpi.optimisation.ops import LinearOperatorMatrix, Identity
 
 from ccpi.plugins.regularisers import _ROF_TV_, _FGP_TV_, _SB_TV_
 
 import numpy as np
 import matplotlib.pyplot as plt
-
-
 #%%
 # Requires CVXPY, see http://www.cvxpy.org/
 # CVXPY can be installed in anaconda using
@@ -108,7 +105,7 @@ plt.loglog(criterfbpdtv_denoise, label='FBPD TV')
 plt.show()
 
 #%% FISTA with ROF-TV regularisation
-g_rof = _ROF_TV_(lambdaReg = lam_tv,iterationsTV=5000,tolerance=0,time_marchstep=0.0009,device='cpu')
+g_rof = _ROF_TV_(lambdaReg = lam_tv,iterationsTV=2000,tolerance=0,time_marchstep=0.0009,device='cpu')
 
 xtv_rof = g_rof.prox(y,1.0)
 
@@ -116,9 +113,11 @@ print("CCPi-RGL TV ROF:")
 plt.figure()
 plt.imshow(xtv_rof.as_array())
 valObjRof = g_rof(xtv_rof)
-plt.title('ROF TV prox with objective equal to {:.2f}'.format(valObjRof[0]))
+data_energy = 0.5*np.sum(np.power((xtv_rof.as_array() - y.array),2))
+EnergytotalROF = data_energy + 0.5*valObjRof[0]
+plt.title('ROF TV prox with objective equal to {:.2f}'.format(EnergytotalROF))
 plt.show()
-print(valObjRof[0])
+print(EnergytotalROF)
 
 #%% FISTA with FGP-TV regularisation
 g_fgp = _FGP_TV_(lambdaReg = lam_tv,iterationsTV=5000,tolerance=0,methodTV=0,nonnegativity=0,printing=0,device='cpu')
@@ -129,11 +128,13 @@ print("CCPi-RGL TV FGP:")
 plt.figure()
 plt.imshow(xtv_fgp.as_array())
 valObjFGP = g_fgp(xtv_fgp)
-plt.title('FGP TV prox with objective equal to {:.2f}'.format(valObjFGP[0]))
+data_energy = 0.5*np.sum(np.power((xtv_fgp.as_array() - y.array),2))
+EnergytotalFGP = data_energy + 0.5*valObjFGP[0]
+plt.title('FGP TV prox with objective equal to {:.2f}'.format(EnergytotalFGP))
 plt.show()
-print(valObjFGP[0])
+print(EnergytotalFGP)
 #%% Split-Bregman-TV regularisation
-g_sb = _SB_TV_(lambdaReg = lam_tv,iterationsTV=150,tolerance=0,methodTV=0,printing=0,device='cpu')
+g_sb = _SB_TV_(lambdaReg = lam_tv,iterationsTV=1000,tolerance=0,methodTV=0,printing=0,device='cpu')
 
 xtv_sb = g_sb.prox(y,1.0)
 
@@ -141,9 +142,11 @@ print("CCPi-RGL TV SB:")
 plt.figure()
 plt.imshow(xtv_sb.as_array())
 valObjSB = g_sb(xtv_sb)
-plt.title('SB TV prox with objective equal to {:.2f}'.format(valObjSB[0]))
+data_energy = 0.5*np.sum(np.power((xtv_sb.as_array() - y.array),2))
+EnergytotalSB = data_energy + 0.5*valObjSB[0]
+plt.title('SB TV prox with objective equal to {:.2f}'.format(EnergytotalSB))
 plt.show()
-print(valObjSB[0])
+print(EnergytotalSB)
 #%%
 
 
