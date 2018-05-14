@@ -19,6 +19,7 @@ requirements:
     - numpy
     - ccpi-framework
     - ccpi-reconstruction
+    - ccpi-regulariser
     - matplotlib
 	
 about:

@@ -18,14 +18,14 @@
 #   limitations under the License.
 
 # This requires CCPi-Regularisation toolbox to be installed
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV
+from ccpi.filters import regularisers
 from ccpi.filters.cpu_regularisers import TV_ENERGY
 from ccpi.framework import DataContainer
 from ccpi.optimisation.ops import Operator
 import numpy as np
 
 
-class _ROF_TV_(Operator):
+class ROF_TV(Operator):
     def __init__(self,lambdaReg,iterationsTV,tolerance,time_marchstep,device):
         # set parameters
         self.lambdaReg = lambdaReg
@@ -43,13 +43,13 @@ class _ROF_TV_(Operator):
                 'number_of_iterations' :self.iterationsTV ,\
                 'time_marching_parameter':self.time_marchstep}
         
-        out = ROF_TV(pars['input'], 
+        out = regularisers.ROF_TV(pars['input'], 
               pars['regularization_parameter'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'], self.device)
         return DataContainer(out)
 
-class _FGP_TV_(Operator):
+class FGP_TV(Operator):
     def __init__(self,lambdaReg,iterationsTV,tolerance,methodTV,nonnegativity,printing,device):
         # set parameters
         self.lambdaReg = lambdaReg
@@ -73,7 +73,7 @@ class _FGP_TV_(Operator):
                 'nonneg': self.nonnegativity ,\
                 'printingOut': self.printing}
         
-        out = FGP_TV(pars['input'], 
+        out = regularisers.FGP_TV(pars['input'], 
               pars['regularization_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
@@ -83,7 +83,7 @@ class _FGP_TV_(Operator):
         return DataContainer(out)
 
 
-class _SB_TV_(Operator):
+class SB_TV(Operator):
     def __init__(self,lambdaReg,iterationsTV,tolerance,methodTV,printing,device):
         # set parameters
         self.lambdaReg = lambdaReg
@@ -105,7 +105,7 @@ class _SB_TV_(Operator):
                 'methodTV': self.methodTV ,\
                 'printingOut': self.printing}
         
-        out = SB_TV(pars['input'], 
+        out = regularisers.SB_TV(pars['input'], 
               pars['regularization_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 

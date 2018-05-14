@@ -10,7 +10,7 @@ from ccpi.optimisation.algs import FISTA, FBPD, CGLS
 from ccpi.optimisation.funcs import Norm2sq, ZeroFun, Norm1, TV2D
 from ccpi.optimisation.ops import LinearOperatorMatrix, Identity
 
-from ccpi.plugins.regularisers import _ROF_TV_, _FGP_TV_, _SB_TV_
+from ccpi.plugins.regularisers import ROF_TV, FGP_TV, SB_TV
 
 # All external imports
 import numpy as np
@@ -117,7 +117,7 @@ plt.legend()
 plt.show()
 
 #%% FISTA with ROF-TV regularisation
-g_rof = _ROF_TV_(lambdaReg = lam_tv,
+g_rof = ROF_TV(lambdaReg = lam_tv,
                  iterationsTV=2000,
                  tolerance=0,
                  time_marchstep=0.0009,
@@ -136,7 +136,7 @@ plt.show()
 print(EnergytotalROF)
 
 #%% FISTA with FGP-TV regularisation
-g_fgp = _FGP_TV_(lambdaReg = lam_tv,
+g_fgp = FGP_TV(lambdaReg = lam_tv,
                  iterationsTV=5000,
                  tolerance=0,
                  methodTV=0,
@@ -157,7 +157,7 @@ plt.show()
 print(EnergytotalFGP)
 
 #%% Split-Bregman-TV regularisation
-g_sb = _SB_TV_(lambdaReg = lam_tv,
+g_sb = SB_TV(lambdaReg = lam_tv,
                iterationsTV=1000,
                tolerance=0,
                methodTV=0,

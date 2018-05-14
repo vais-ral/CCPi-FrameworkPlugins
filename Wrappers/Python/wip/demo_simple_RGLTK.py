@@ -8,7 +8,7 @@ from ccpi.framework import ImageData , ImageGeometry, AcquisitionGeometry
 from ccpi.optimisation.algs import FISTA, FBPD, CGLS
 from ccpi.optimisation.funcs import Norm2sq, Norm1, TV2D
 from ccpi.astra.ops import AstraProjectorSimple
-from ccpi.plugins.regularisers import _ROF_TV_, _FGP_TV_, _SB_TV_
+from ccpi.plugins.regularisers import ROF_TV, FGP_TV, SB_TV
 
 # All external imports
 import numpy as np
@@ -108,7 +108,7 @@ plt.show()
 
 # Set up the ROF variant of TV from the CCPi Regularisation Toolkit and run
 # TV-reconstruction using FISTA
-g_rof = _ROF_TV_(lambdaReg = lamtv,
+g_rof = ROF_TV(lambdaReg = lamtv,
                  iterationsTV=50,
                  tolerance=1e-5,
                  time_marchstep=0.01,
@@ -127,7 +127,7 @@ plt.semilogy(criter_rof)
 plt.show()
 
 # Repeat for FGP variant.
-g_fgp = _FGP_TV_(lambdaReg = lamtv,
+g_fgp = FGP_TV(lambdaReg = lamtv,
                  iterationsTV=50,
                  tolerance=1e-5,
                  methodTV=0,
@@ -146,7 +146,7 @@ plt.semilogy(criter_fgp)
 plt.show()
 
 # Repeat for SB variant.
-g_sb = _SB_TV_(lambdaReg = lamtv,
+g_sb = SB_TV(lambdaReg = lamtv,
                  iterationsTV=50,
                  tolerance=1e-5,
                  methodTV=0,
