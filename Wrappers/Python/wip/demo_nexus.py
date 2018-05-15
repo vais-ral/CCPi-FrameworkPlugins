@@ -12,7 +12,8 @@ from ccpi.framework import ImageData, AcquisitionData, ImageGeometry, Acquisitio
 from ccpi.optimisation.algs import FISTA, FBPD, CGLS
 from ccpi.optimisation.funcs import Norm2sq, Norm1
 from ccpi.plugins.ops import CCPiProjectorSimple
-from ccpi.processors import Normalizer, CenterOfRotationFinder, AcquisitionDataPadder
+from ccpi.processors import Normalizer, CenterOfRotationFinder 
+from ccpi.plugins.processors import AcquisitionDataPadder
 from ccpi.io.reader import NexusReader
 
 # All external imports
