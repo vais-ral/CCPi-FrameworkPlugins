@@ -115,9 +115,10 @@ class CCPiForwardProjector(DataProcessor):
             pixels = pbalg.pb_forward_project(volume.as_array(), 
                                                   self.acquisition_geometry.angles, 
                                                   pixel_per_voxel)
-            out = AcquisitionData(geometry=self.acquisition_geometry, 
+            out = AcquisitionData(pixels, False, 
+                                  geometry=self.acquisition_geometry, 
                                   label_dimensions=self.default_acquisition_axes_order)
-            out.fill(pixels)
+            #out.fill(pixels)
             out_axes = out.get_data_axes_order(new_order=self.output_axes_order)
             if not out_axes == [0,1,2]:
                 out.array = numpy.transpose(out.array, out_axes)
@@ -185,13 +186,14 @@ class CCPiBackwardProjector(DataProcessor):
                          center_of_rotation, 
                          pixel_per_voxel
                          )
-            out = ImageData(geometry=self.image_geometry, 
+            out = ImageData(back , False, 
+                            geometry=self.image_geometry, 
                             dimension_labels=self.default_image_axes_order)
             
             out_axes = out.get_data_axes_order(new_order=self.output_axes_order)
             if not out_axes == [0,1,2]:
                 back = numpy.transpose(back, out_axes)
-            out.fill(back)
+                out.fill(back)
             
             return out
             
