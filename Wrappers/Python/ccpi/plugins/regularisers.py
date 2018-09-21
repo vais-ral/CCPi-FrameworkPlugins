@@ -25,7 +25,7 @@ from ccpi.optimisation.ops import Operator
 import numpy as np
 
 
-class ROF_TV(Operator):
+class ROF_TV(Function):
     def __init__(self,lambdaReg,iterationsTV,tolerance,time_marchstep,device):
         # set parameters
         self.lambdaReg = lambdaReg
@@ -49,7 +49,7 @@ class ROF_TV(Operator):
               pars['time_marching_parameter'], self.device)
         return DataContainer(out)
 
-class FGP_TV(Operator):
+class FGP_TV(Function):
     def __init__(self,lambdaReg,iterationsTV,tolerance,methodTV,nonnegativity,printing,device):
         # set parameters
         self.lambdaReg = lambdaReg
@@ -83,7 +83,7 @@ class FGP_TV(Operator):
         return DataContainer(out)
 
 
-class SB_TV(Operator):
+class SB_TV(Function):
     def __init__(self,lambdaReg,iterationsTV,tolerance,methodTV,printing,device):
         # set parameters
         self.lambdaReg = lambdaReg
