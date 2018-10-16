@@ -36,10 +36,10 @@ class ROF_TV(Function):
         # evaluate objective function of TV gradient
         EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
         return 0.5*EnergyValTV[0]
-    def prox(self,x,Lipshitz):
+    def prox(self,x,tau):
         pars = {'algorithm' : ROF_TV, \
                'input' : np.asarray(x.as_array(), dtype=np.float32),\
-                'regularization_parameter':self.lambdaReg*Lipshitz, \
+                'regularization_parameter':self.lambdaReg*tau, \
                 'number_of_iterations' :self.iterationsTV ,\
                 'time_marching_parameter':self.time_marchstep}
         
@@ -63,10 +63,10 @@ class FGP_TV(Function):
         # evaluate objective function of TV gradient
         EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
         return 0.5*EnergyValTV[0]
-    def prox(self,x,Lipshitz):
+    def prox(self,x,tau):
         pars = {'algorithm' : FGP_TV, \
                'input' : np.asarray(x.as_array(), dtype=np.float32),\
-                'regularization_parameter':self.lambdaReg*Lipshitz, \
+                'regularization_parameter':self.lambdaReg*tau, \
                 'number_of_iterations' :self.iterationsTV ,\
                 'tolerance_constant':self.tolerance,\
                 'methodTV': self.methodTV ,\
@@ -96,10 +96,10 @@ class SB_TV(Function):
         # evaluate objective function of TV gradient
         EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
         return 0.5*EnergyValTV[0]
-    def prox(self,x,Lipshitz):
+    def prox(self,x,tau):
         pars = {'algorithm' : SB_TV, \
                'input' : np.asarray(x.as_array(), dtype=np.float32),\
-                'regularization_parameter':self.lambdaReg*Lipshitz, \
+                'regularization_parameter':self.lambdaReg*tau, \
                 'number_of_iterations' :self.iterationsTV ,\
                 'tolerance_constant':self.tolerance,\
                 'methodTV': self.methodTV ,\
