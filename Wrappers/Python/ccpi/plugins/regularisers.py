@@ -210,3 +210,96 @@ class TGV(Function):
               pars['LipshitzConstant'],
               pars['device'])
         return DataContainer(out)
+
+class LLT_ROF(Function):
+    '''A Function wrapper for the LLT_ROF regulariser
+
+    LLT_ROF(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations,
+                     time_marching_parameter, device='cpu')
+    '''
+    def __init__(self, regularisation_parameterROF, regularisation_parameterLLT, iterations,
+                     time_marching_parameter, device='cpu'):
+        # set parameters
+        self.regularisation_parameterROF = regularisation_parameterROF
+        self.regularisation_parameterLLT = regularisation_parameterLLT
+        self.time_marching_parameter = time_marching_parameter
+        self.iterations = iterations
+        self.device = device # string for 'cpu' or 'gpu'
+    def __call__(self,x):
+        # evaluate objective function of TV gradient
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
+        EnergyValTV = TV_ENERGY(x32 , x32 , self.regularisation_parameter, 2)
+        return 0.5*EnergyValTV[0]
+    def prox(self,x,tau):
+        return self.proximal (x,tau,out=None)
+    def proximal(self, x, tau, out=None):
+        if out is not None:
+            raise ValueError('out cannot be passed as argument yet')
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
+        pars = {
+            'input' : x32,\
+            'regularisation_parameterROF':self.regularisation_parameterROF, \
+            'regularisation_parameterLLT':self.regularisation_parameterLLT, \
+            'number_of_iterations' :self.iterations ,\
+            'time_marching_parameter' :self.time_marching_parameter ,\
+            'device': self.device
+        }
+        out = regularisers.LLT_ROF(pars['input'], 
+              pars['regularisation_parameterROF'],
+              pars['regularisation_parameterLLT'],
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'],
+              pars['device'])
+        return DataContainer(out)
+class Diff4th(Function):
+    '''A Function wrapper for the Diff4th regulariser
+
+    DIFF4th(inputData, regularisation_parameter, edge_parameter, iterations,
+                     time_marching_parameter, device='cpu'):
+    '''
+    def __init__(self, regularisation_parameter, edge_parameter, iterations,
+                     time_marching_parameter, device='cpu'):
+        # set parameters
+        self.regularisation_parameter = regularisation_parameter
+        self.edge_parameter = edge_parameter
+        self.time_marching_parameter = time_marching_parameter
+        self.iterations = iterations
+        self.device = device # string for 'cpu' or 'gpu'
+        print ("init correct")
+    def __call__(self,x):
+        # evaluate objective function of TV gradient
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
+        EnergyValTV = TV_ENERGY(x32 , x32 , self.regularisation_parameter, 2)
+        return 0.5*EnergyValTV[0]
+    def prox(self,x,tau):
+        return self.proximal (x,tau,out=None)
+    def proximal(self, x, tau, out=None):
+        if out is not None:
+            raise ValueError('out cannot be passed as argument yet')
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
+        
+        
+        pars = {
+        'input' : x32,\
+        'regularisation_parameter': self.regularisation_parameter, \
+        'edge_parameter': self.edge_parameter,\
+        'number_of_iterations' :self.iterations ,\
+        'time_marching_parameter': self.time_marching_parameter ,\
+        'device' : self.device
+        }
+
+        out = regularisers.Diff4th(pars['input'],
+              pars['regularisation_parameter'],
+              pars['edge_parameter'],
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'],
+              pars['device'])
+        return DataContainer(out)
