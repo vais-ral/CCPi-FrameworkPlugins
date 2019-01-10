@@ -122,9 +122,14 @@ plt.show()
 # Create least squares object instance with projector, test data and a constant 
 # coefficient of 0.5:
 f = Norm2sq(Cop,b,c=0.5)
-
+opt['memopts'] = False
+opt['log'] = True
 # Run FISTA for least squares without regularization
 x_fista0, it0, timing0, criter0 = FISTA(x_init, f, None, opt=opt)
+print ("FISTA memhandle False: ", timing0[-1], criter0[-1])
+opt['memopts'] = True
+x_fista0, it0, timing0, criter0 = FISTA(x_init, f, None, opt=opt)
+print ("FISTA memhandle True: ", timing0[-1], criter0[-1])
 
 plt.imshow(x_fista0.subset(vertical=0).array)
 plt.title('FISTA Least squares')

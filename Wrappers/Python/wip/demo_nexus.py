@@ -81,7 +81,9 @@ x_init = ImageData(geometry=ig, dimension_labels=['horizontal_x','horizontal_y',
         
 # Run FISTA reconstruction for least squares without regularization
 print ("Run FISTA for least squares")
-opt = {'tol': 1e-4, 'iter': 10}
+opt = {'tol': 1e-4, 'iter': 10, 'log': True, 'memopts' : False}
+x_fista0, it0, timing0, criter0 = FISTA(x_init, f, None, opt=opt)
+opt['memopts'] = True
 x_fista0, it0, timing0, criter0 = FISTA(x_init, f, None, opt=opt)
 
 plt.imshow(x_fista0.subset(horizontal_x=80).array)
