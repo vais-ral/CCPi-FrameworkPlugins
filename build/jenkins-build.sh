@@ -27,7 +27,7 @@ conda install -y conda-build
 #export CIL_VERSION=0.10.2
 #cd CCPi-Regularisation-Toolkit # already there by jenkins
 # need to call first build
-conda build Wrappers/Python/conda-recipe
+conda build Wrappers/Python/conda-recipe -c conda-forge -c ccpi
 # then need to call the same with --output 
 #- otherwise no build is done :-(, just fake file names are generated
 export REG_FILES=`conda build Wrappers/Python/conda-recipe --output`
