@@ -8,7 +8,8 @@
 from ccpi.framework import ImageData, ImageGeometry, AcquisitionGeometry
 
 from ccpi.optimisation.algs import FISTA, FBPD, CGLS
-from ccpi.optimisation.funcs import Norm2sq, Norm1
+from ccpi.optimisation.funcs import Norm2sq, Norm1, ZeroFun
+from ccpi.optimisation.ops import TomoIdentity
 
 from ccpi.plugins.ops import CCPiProjectorSimple
 
@@ -152,23 +153,118 @@ plt.semilogy(criter1)
 plt.title('FISTA Least squares plus 1-norm regularisation criterion')
 plt.show()
 
+
+#%%
 # The least squares plus 1-norm regularisation problem can also be solved by 
 # other algorithms such as the Forward Backward Primal Dual algorithm. This
 # algorithm minimises the sum of three functions and the least squares and 
 # 1-norm functions should be given as the second and third function inputs. 
 # In this test case, this algorithm requires more iterations to converge, so
 # new options are specified.
-x_fbpd1, it_fbpd1, timing_fbpd1, criter_fbpd1 = FBPD(x_init,None,f,g0,opt=opt)
+#x_fbpd1, it_fbpd1, timing_fbpd1, criter_fbpd1 = FBPD(x_init,TomoIdentity(ig),
+#                                                     f,g0,opt=opt)
+#
+#plt.imshow(x_fbpd1.subset(vertical=0).array)
+#plt.title('FBPD for least squares plus 1-norm regularisation')
+#plt.show()
+#
+#plt.semilogy(criter_fbpd1)
+#plt.title('FBPD for least squares plus 1-norm regularisation criterion')
+#plt.show()
 
-plt.imshow(x_fbpd1.subset(vertical=0).array)
-plt.title('FBPD for least squares plus 1-norm regularisation')
-plt.show()
+class Algorithm(object):
+    def __init__(self, *args, **kwargs):
+        pass
+    def set_up(self, *args, **kwargs):
+        raise NotImplementedError()
+    def update(self):
+        raise NotImplementedError()
+    
+    def should_stop(self):
+        raise NotImplementedError()
+    
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        if self.should_stop():
+            raise StopIteration()
+        else:
+            self.update()
+        
+class GradientDescent(Algorithm):
+    x = None
+    rate = 0
+    objective_function = None
+    regulariser = None
+    iteration = 0
+    stop_cryterion = 'max_iter'
+    __max_iteration = 0
+    __loss = []
+    memopt = False
+    def __init__(self, **kwargs):
+        args = ['x_init', 'objective_function', 'rate']
+        present = True
+        for k,v in kwargs.items():
+            if k in args:
+                args.pop(args.index(k))
+        if len(args) == 0:
+            return self.set_up(x_init=kwargs['x_init'],
+                               objective_function=kwargs['objective_function'],
+                               rate=kwargs['rate'])
+    
+    def should_stop(self):
+        return self.iteration >= self.max_iteration
+    
+    def set_up(self, x_init, objective_function, rate):
+        self.x = x_init.copy()
+        self.x_update = x_init.copy()
+        self.objective_function = objective_function
+        self.rate = rate
+        self.__loss.append(objective_function(x_init))
+        
+    def update(self):
+        if self.memopt:
+            self.objective_function.gradient(self.x, out=self.x_update)
+            self.x_update *= -self.rate
+            self.x += self.x_update
+        else:
+            self.x += -self.rate * self.objective_function.grad(self.x)
+            
+        self.__loss.append(self.objective_function(self.x))
+        self.iteration += 1
+        
+    def get_output(self):
+        return self.x
+    def get_current_loss(self):
+        return self.__loss[-1]
+    @property
+    def loss(self):
+        return self.__loss
+    @property
+    def max_iteration(self):
+        return self.__max_iteration
+    @max_iteration.setter
+    def max_iteration(self, value):
+        assert isinstance(value, int)
+        self.__max_iteration = value
+        
+import numpy
+x_init = ImageData(geometry=ig, 
+                   dimension_labels=['horizontal_x','horizontal_y','vertical'])
+#x_init.fill(numpy.random.random(x_init.shape))
+gd = GradientDescent(x_init=x_init+1, objective_function=f, rate=0.0003)
+gd.max_iteration = 50
 
-plt.semilogy(criter_fbpd1)
-plt.title('FBPD for least squares plus 1-norm regularisation criterion')
-plt.show()
-
-
+for i,el in enumerate(gd):
+#for i in range(10):
+    #gd.update()
+    if i%10 == 0:
+        print ("\rIteration {} Loss: {}".format(gd.iteration, 
+               gd.get_current_loss()))
+        #fig = plt.figure()
+        #plt.imshow(gd.get_output().subset(vertical=0).as_array())
+        #plt.show()
 # Compare all reconstruction and criteria
 
 clims = (0,1)
@@ -204,19 +300,27 @@ imgplot = plt.imshow(x_fista1.subset(vertical=0).as_array(),
                      vmin=clims[0],vmax=clims[1])
 plt.axis('off')
 
+#current = current + 1
+#a=fig.add_subplot(rows,cols,current)
+#a.set_title('FBPD LS+1')
+#imgplot = plt.imshow(x_fbpd1.subset(vertical=0).as_array(),
+#                     vmin=clims[0],vmax=clims[1])
+#plt.axis('off')
 current = current + 1
 a=fig.add_subplot(rows,cols,current)
-a.set_title('FBPD LS+1')
-imgplot = plt.imshow(x_fbpd1.subset(vertical=0).as_array(),
+a.set_title('Gradient Descent')
+imgplot = plt.imshow(gd.get_output().subset(vertical=0).as_array(),
                      vmin=clims[0],vmax=clims[1])
 plt.axis('off')
 
+#%%
 fig = plt.figure()
 b=fig.add_subplot(1,1,1)
 b.set_title('criteria')
 imgplot = plt.loglog(criter_CGLS, label='CGLS')
 imgplot = plt.loglog(criter0 , label='FISTA LS')
 imgplot = plt.loglog(criter1 , label='FISTA LS+1')
-imgplot = plt.loglog(criter_fbpd1, label='FBPD LS+1')
+#imgplot = plt.loglog(criter_fbpd1, label='FBPD LS+1')
+imgplot = plt.loglog(gd.loss, label='GD')
 b.legend(loc='lower left')
 plt.show()
