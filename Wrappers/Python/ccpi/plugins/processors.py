@@ -102,7 +102,7 @@ class CCPiForwardProjector(DataProcessor):
             raise ValueError("Expected input dimensions is 2 or 3, got {0}"\
                              .format(dataset.number_of_dimensions))
 
-    def process(self):
+    def process(self, out=None):
         
         volume = self.get_input()
         volume_axes = volume.get_data_axes_order(new_order=self.default_image_axes_order)
@@ -115,13 +115,16 @@ class CCPiForwardProjector(DataProcessor):
             pixels = pbalg.pb_forward_project(volume.as_array(), 
                                                   self.acquisition_geometry.angles, 
                                                   pixel_per_voxel)
-            out = AcquisitionData(geometry=self.acquisition_geometry, 
-                                  label_dimensions=self.default_acquisition_axes_order)
-            out.fill(pixels)
-            out_axes = out.get_data_axes_order(new_order=self.output_axes_order)
-            if not out_axes == [0,1,2]:
-                out.array = numpy.transpose(out.array, out_axes)
-            return out
+            if out is None:
+                out = AcquisitionData(geometry=self.acquisition_geometry, 
+                                      label_dimensions=self.default_acquisition_axes_order)
+                out.fill(pixels)
+                out_axes = out.get_data_axes_order(new_order=self.output_axes_order)
+                if not out_axes == [0,1,2]:
+                    out.array = numpy.transpose(out.array, out_axes)
+                return out
+            else:
+                out.fill(pixels)
         else:
             raise ValueError('Cannot process cone beam')
 
@@ -165,7 +168,7 @@ class CCPiBackwardProjector(DataProcessor):
             raise ValueError("Expected input dimensions is 2 or 3, got {0}"\
                              .format(dataset.number_of_dimensions))
 
-    def process(self):
+    def process(self, out=None):
         projections = self.get_input()
         projections_axes = projections.get_data_axes_order(new_order=self.default_acquisition_axes_order)
         if not projections_axes == [0,1,2]:
@@ -185,16 +188,18 @@ class CCPiBackwardProjector(DataProcessor):
                          center_of_rotation, 
                          pixel_per_voxel
                          )
-            out = ImageData(geometry=self.image_geometry, 
-                            dimension_labels=self.default_image_axes_order)
-            
-            out_axes = out.get_data_axes_order(new_order=self.output_axes_order)
-            if not out_axes == [0,1,2]:
-                back = numpy.transpose(back, out_axes)
-            out.fill(back)
-            
-            return out
-            
+            if out is None:
+                out = ImageData(geometry=self.image_geometry, 
+                                dimension_labels=self.default_image_axes_order)
+                
+                out_axes = out.get_data_axes_order(new_order=self.output_axes_order)
+                if not out_axes == [0,1,2]:
+                    back = numpy.transpose(back, out_axes)
+                out.fill(back)
+                
+                return out
+            else:
+                out.fill(back)
         else:
             raise ValueError('Cannot process cone beam')
             

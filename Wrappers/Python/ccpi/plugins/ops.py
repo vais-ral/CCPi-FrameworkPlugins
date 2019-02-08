@@ -79,15 +79,19 @@ class CCPiProjectorSimple(Operator):
         # Initialise empty for singular value.
         self.s1 = None
     
-    def direct(self, image_data):
+    def direct(self, image_data, out=None):
         self.fp.set_input(image_data)
-        out = self.fp.get_output()
-        return out
+        if out is None:
+            ret = self.fp.get_output()
+            return ret
+        else:
+            self.fp.get_output(out)
     
-    def adjoint(self, acquisition_data):
+    def adjoint(self, acquisition_data, out=None):
         self.bp.set_input(acquisition_data)
-        out = self.bp.get_output()
-        return out
+        if out is None:
+            ret = self.bp.get_output()
+            return ret
     
     #def delete(self):
     #    astra.data2d.delete(self.proj_id)
@@ -105,7 +109,7 @@ class CCPiProjectorSimple(Operator):
                  (self.volume_geometry.voxel_num_x, \
                   self.volume_geometry.voxel_num_y,
                   self.volume_geometry.voxel_num_z) )
-    def create_image_data(self):
+    def allocate_direct(self):
         x0 = ImageData(geometry = self.volume_geometry, 
                        dimension_labels=self.bp.output_axes_order)#\
                        #.subset(['horizontal_x','horizontal_y','vertical'])
