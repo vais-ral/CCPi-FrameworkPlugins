@@ -78,16 +78,27 @@ class CCPiProjectorSimple(Operator):
                 
         # Initialise empty for singular value.
         self.s1 = None
-    
-    def direct(self, image_data):
+        self.ag = pg
+        self.vg = vg
+
+    def is_linear(self):
+        return True
+
+    def direct(self, image_data, out=None):
         self.fp.set_input(image_data)
-        out = self.fp.get_output()
-        return out
-    
-    def adjoint(self, acquisition_data):
+        if out is None:
+            out = self.fp.get_output()
+            return out
+        else:
+            out.fill(self.fp.get_output())
+
+    def adjoint(self, acquisition_data, out=None):
         self.bp.set_input(acquisition_data)
-        out = self.bp.get_output()
-        return out
+        if out is None:
+            out = self.bp.get_output()
+            return out
+        else:
+            out.fill(self.bp.get_output())
     
     #def delete(self):
     #    astra.data2d.delete(self.proj_id)
@@ -111,3 +122,30 @@ class CCPiProjectorSimple(Operator):
                        #.subset(['horizontal_x','horizontal_y','vertical'])
         x0.fill(numpy.random.randn(*x0.shape))
         return x0
+    def domain_geometry(self):
+        return ImageGeometry(
+            self.vg.voxel_num_x,
+            self.vg.voxel_num_y,
+            self.vg.voxel_num_z,
+            self.vg.voxel_size_x,
+            self.vg.voxel_size_y,
+            self.vg.voxel_size_z,
+            self.vg.center_x,
+            self.vg.center_y,
+            self.vg.center_z,
+            self.vg.channels,
+            ['horizontal_x','horizontal_y','vertical'] )
+
+    def range_geometry(self):
+        return AcquisitionGeometry(self.ag.geom_type,
+                               self.ag.dimension,
+                               self.ag.angles,
+                               self.ag.pixel_num_h,
+                               self.ag.pixel_size_h,
+                               self.ag.pixel_num_v,
+                               self.ag.pixel_size_v,
+                               self.ag.dist_source_center,
+                               self.ag.dist_center_detector,
+                               self.ag.channels,
+                               ['angle','vertical','horizontal'])
+
