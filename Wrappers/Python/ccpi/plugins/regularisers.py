@@ -104,10 +104,9 @@ class FGP_TV(Function):
         self.device = device # string for 'cpu' or 'gpu'
     def __call__(self,x):
         # evaluate objective function of TV gradient
-        if x.dtype != np.float32:
-            x32 = np.asarray(x.as_array(), dtype=np.float32)
-        else:
-            x32 = x
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
         EnergyValTV = TV_ENERGY(x32 , x32 , self.lambdaReg, 2)
         return 0.5*EnergyValTV[0]
     def prox(self,x,tau):
@@ -126,8 +125,7 @@ class FGP_TV(Function):
               pars['methodTV'],
               pars['nonneg'],
               pars['printingOut'], self.device)
-        return type(x)(out, geometry=x.geometry,
-                       dimension_labels=x.dimension_labels)
+        return DataContainer(out)
 class SB_TV(Function):
     def __init__(self,lambdaReg,iterationsTV,tolerance,methodTV,printing,device):
         # set parameters
@@ -139,10 +137,9 @@ class SB_TV(Function):
         self.device = device # string for 'cpu' or 'gpu'
     def __call__(self,x):
         # evaluate objective function of TV gradient
-        if x.dtype != np.float32:
-            x32 = np.asarray(x.as_array(), dtype=np.float32)
-        else:
-            x32 = x
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
         EnergyValTV = TV_ENERGY(x32 , x32 , self.lambdaReg, 2)
         return 0.5*EnergyValTV[0]
     def prox(self,x,tau):
@@ -159,8 +156,7 @@ class SB_TV(Function):
               pars['tolerance_constant'], 
               pars['methodTV'],
               pars['printingOut'], self.device)
-        return type(x)(out, geometry=x.geometry,
-                       dimension_labels=x.dimension_labels)
+        return DataContainer(out)
 class NDF(Function):
     '''A Function wrapper for the NDF regulariser
 
@@ -178,10 +174,9 @@ class NDF(Function):
         self.device = device # string for 'cpu' or 'gpu'
     def __call__(self,x):
         # evaluate objective function of TV gradient
-        if x.dtype != np.float32:
-            x32 = np.asarray(x.as_array(), dtype=np.float32)
-        else:
-            x32 = x
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
         EnergyValTV = TV_ENERGY(x32 , x32 , self.regularisation_parameter, 2)
         return 0.5*EnergyValTV[0]
     def prox(self,x,tau):
@@ -189,10 +184,9 @@ class NDF(Function):
     def proximal(self, x, tau, out=None):
         if out is not None:
             raise ValueError('out cannot be passed as argument yet')
-        if x.dtype != np.float32:
-            x32 = np.asarray(x.as_array(), dtype=np.float32)
-        else:
-            x32 = x
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
         pars = {'algorithm' : NDF, \
         'input' : x32,\
         'regularisation_parameter':self.regularisation_parameter, \
@@ -202,15 +196,14 @@ class NDF(Function):
         'penalty_type':  self.penalty_type,\
         'device' : self.device
         }
-        out = NDF(pars['input'],
+        out = regularisers.NDF(pars['input'],
               pars['regularisation_parameter'],
               pars['edge_parameter'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
               pars['penalty_type'],
               pars['device'])
-       return type(x)(out, geometry=x.geometry,
-                       dimension_labels=x.dimension_labels)
+        return DataContainer(out)
 class TGV(Function):
     '''A Function wrapper for the TGV regulariser
 
@@ -224,14 +217,14 @@ class TGV(Function):
         self.alpha1 = alpha1
         self.alpha0 = alpha0
         self.iterations = iterations
-        self.LipshitzConst = LipshitzConst
+        self.LipshitzConstant = LipshitzConst
         self.device = device # string for 'cpu' or 'gpu'
+        print ("init correct")
     def __call__(self,x):
         # evaluate objective function of TV gradient
-        if x.dtype != np.float32:
-            x32 = np.asarray(x.as_array(), dtype=np.float32)
-        else:
-            x32 = x
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
         EnergyValTV = TV_ENERGY(x32 , x32 , self.regularisation_parameter, 2)
         return 0.5*EnergyValTV[0]
     def prox(self,x,tau):
@@ -239,10 +232,10 @@ class TGV(Function):
     def proximal(self, x, tau, out=None):
         if out is not None:
             raise ValueError('out cannot be passed as argument yet')
-        if x.dtype != np.float32:
-            x32 = np.asarray(x.as_array(), dtype=np.float32)
-        else:
-            x32 = x
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
+        
         pars = {'algorithm' : TGV, \
         'input' : x32,\
         'regularisation_parameter':self.regularisation_parameter, \
@@ -252,12 +245,104 @@ class TGV(Function):
         'LipshitzConstant' :self.LipshitzConstant,\
         'device' : self.device
         }
-        out = TGV(pars['input'],
+        out = regularisers.TGV(pars['input'],
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
               pars['LipshitzConstant'],
               pars['device'])
-       return type(x)(out, geometry=x.geometry,
-                      dimension_labels=x.dimension_labels)
+        return DataContainer(out)
+
+class LLT_ROF(Function):
+    '''A Function wrapper for the LLT_ROF regulariser
+
+    LLT_ROF(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations,
+                     time_marching_parameter, device='cpu')
+    '''
+    def __init__(self, regularisation_parameterROF, regularisation_parameterLLT, iterations,
+                     time_marching_parameter, device='cpu'):
+        # set parameters
+        self.regularisation_parameterROF = regularisation_parameterROF
+        self.regularisation_parameterLLT = regularisation_parameterLLT
+        self.time_marching_parameter = time_marching_parameter
+        self.iterations = iterations
+        self.device = device # string for 'cpu' or 'gpu'
+    def __call__(self,x):
+        # evaluate objective function of TV gradient
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
+        EnergyValTV = TV_ENERGY(x32 , x32 , self.regularisation_parameter, 2)
+        return 0.5*EnergyValTV[0]
+    def prox(self,x,tau):
+        return self.proximal (x,tau,out=None)
+    def proximal(self, x, tau, out=None):
+        if out is not None:
+            raise ValueError('out cannot be passed as argument yet')
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
+        pars = {
+            'input' : x32,\
+            'regularisation_parameterROF':self.regularisation_parameterROF, \
+            'regularisation_parameterLLT':self.regularisation_parameterLLT, \
+            'number_of_iterations' :self.iterations ,\
+            'time_marching_parameter' :self.time_marching_parameter ,\
+            'device': self.device
+        }
+        out = regularisers.LLT_ROF(pars['input'], 
+              pars['regularisation_parameterROF'],
+              pars['regularisation_parameterLLT'],
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'],
+              pars['device'])
+        return DataContainer(out)
+class Diff4th(Function):
+    '''A Function wrapper for the Diff4th regulariser
+
+    DIFF4th(inputData, regularisation_parameter, edge_parameter, iterations,
+                     time_marching_parameter, device='cpu'):
+    '''
+    def __init__(self, regularisation_parameter, edge_parameter, iterations,
+                     time_marching_parameter, device='cpu'):
+        # set parameters
+        self.regularisation_parameter = regularisation_parameter
+        self.edge_parameter = edge_parameter
+        self.time_marching_parameter = time_marching_parameter
+        self.iterations = iterations
+        self.device = device # string for 'cpu' or 'gpu'
+        print ("init correct")
+    def __call__(self,x):
+        # evaluate objective function of TV gradient
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
+        EnergyValTV = TV_ENERGY(x32 , x32 , self.regularisation_parameter, 2)
+        return 0.5*EnergyValTV[0]
+    def prox(self,x,tau):
+        return self.proximal (x,tau,out=None)
+    def proximal(self, x, tau, out=None):
+        if out is not None:
+            raise ValueError('out cannot be passed as argument yet')
+        x32 = x.as_array()
+        if x32.dtype != np.float32:
+            x32 = np.asarray(x32, dtype=np.float32)
+        
+        
+        pars = {
+        'input' : x32,\
+        'regularisation_parameter': self.regularisation_parameter, \
+        'edge_parameter': self.edge_parameter,\
+        'number_of_iterations' :self.iterations ,\
+        'time_marching_parameter': self.time_marching_parameter ,\
+        'device' : self.device
+        }
+
+        out = regularisers.Diff4th(pars['input'],
+              pars['regularisation_parameter'],
+              pars['edge_parameter'],
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'],
+              pars['device'])
+        return DataContainer(out)
