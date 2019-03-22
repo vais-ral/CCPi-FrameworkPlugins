@@ -24,6 +24,49 @@ from ccpi.framework import DataContainer
 from ccpi.optimisation.funcs import Function
 import numpy as np
 
+class Regularisers(Function):
+    def __init__(self, **kwargs):
+        super(Regulariser, self).__init__(**kwargs)
+        
+    def __call__(self,x):
+        '''evaluate objective function of TV gradient'''
+        if x.dtype != np.float32:
+            x32 = np.asarray(x.as_array(), dtype=np.float32)
+        else:
+            x32 = x
+        EnergyValTV = TV_ENERGY(x32 , x32 , self.lambdaReg, 2)
+        return 0.5*EnergyValTV[0]
+    def get_instance(self, regulariser, **kwargs):
+        kwargs.setdefault('lambdaReg', 1e-5)
+        kwargs.setdefault('max_iterations', 100)
+        kwargs.setdefault('tolerance', 1e-5)
+        kwargs.setdefault('device', 'cpu')
+        
+        if regulariser.__name__ == 'ROF_TV':
+            required_parameters = ['time_marchstep']
+
+        elif regulariser.__name__ == 'FGP_TV':
+            required_parameters = ['nonneg' , 'methodTV' , 'printingOut']
+        
+        # check we have all parameters
+        missing = []
+        for el in required_parameters:
+            if el not in self.kwargs.keys():
+                missing.append(el)
+                
+        if len(missing) > 0:
+            raise ValueError('Missing parameters: {}'.format(missing))        
+        #
+        
+        def proximal(x, tau, out=None):
+            if not x.dtype == np.float32:
+                x32 = np.asarray(x.as_array(), dtype=np.float32)
+            else:
+                x32 = x
+            return regulariser(x32,tau*kwargs['lambdaReg'], **kwargs)
+        self.proximal = proximal
+            
+        return self
 
 class ROF_TV(Function):
     def __init__(self,lambdaReg,iterationsTV,tolerance,time_marchstep,device):
