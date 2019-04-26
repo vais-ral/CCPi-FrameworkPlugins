@@ -22,46 +22,50 @@ from ccpi.framework import DataProcessor, AcquisitionData,\
 from ccpi.reconstruction.parallelbeam import alg as pbalg
 import numpy
 
-def setupCCPiGeometries(voxel_num_x, voxel_num_y, voxel_num_z, angles, counter):
+def setupCCPiGeometries(ig, ag, counter):
+        Phantom_ccpi = ig.allocate(dimension_labels=[ImageGeometry.HORIZONTAL_X, 
+                                                 ImageGeometry.HORIZONTAL_Y,
+                                                 ImageGeometry.VERTICAL])    
     
-    vg = ImageGeometry(voxel_num_x=voxel_num_x,voxel_num_y=voxel_num_y, voxel_num_z=voxel_num_z)
-    Phantom_ccpi = ImageData(geometry=vg,
-                        dimension_labels=['horizontal_x','horizontal_y','vertical'])
-    #.subset(['horizontal_x','horizontal_y','vertical'])
-    # ask the ccpi code what dimensions it would like
+        voxel_per_pixel = 1
+        angles = ag.angles
+        geoms = pbalg.pb_setup_geometry_from_image(Phantom_ccpi.as_array(),
+                                                    angles,
+                                                    voxel_per_pixel )
         
-    voxel_per_pixel = 1
-    geoms = pbalg.pb_setup_geometry_from_image(Phantom_ccpi.as_array(),
-                                                angles,
-                                                voxel_per_pixel )
-    
-    pg = AcquisitionGeometry('parallel',
-                              '3D',
-                              angles,
-                              geoms['n_h'], 1.0,
-                              geoms['n_v'], 1.0 #2D in 3D is a slice 1 pixel thick
-                              )
-    
-    center_of_rotation = Phantom_ccpi.get_dimension_size('horizontal_x') / 2
-    ad = AcquisitionData(geometry=pg,dimension_labels=['angle','vertical','horizontal'])
-    geoms_i = pbalg.pb_setup_geometry_from_acquisition(ad.as_array(),
-                                                angles,
-                                                center_of_rotation,
-                                                voxel_per_pixel )
-    
-    counter+=1
-    
-    if counter < 4:
-        if (not ( geoms_i == geoms )):
-            print ("not equal and {0}".format(counter))
-            X = max(geoms['output_volume_x'], geoms_i['output_volume_x'])
-            Y = max(geoms['output_volume_y'], geoms_i['output_volume_y'])
-            Z = max(geoms['output_volume_z'], geoms_i['output_volume_z'])
-            return setupCCPiGeometries(X,Y,Z,angles, counter)
+        pg = AcquisitionGeometry('parallel',
+                                  '3D',
+                                  angles,
+                                  geoms['n_h'], 1.0,
+                                  geoms['n_v'], 1.0 #2D in 3D is a slice 1 pixel thick
+                                  )
+        
+        center_of_rotation = Phantom_ccpi.get_dimension_size('horizontal_x') / 2
+        #ad = AcquisitionData(geometry=pg,dimension_labels=['angle','vertical','horizontal'])
+        ad = pg.allocate(dimension_labels=[AcquisitionGeometry.ANGLE, 
+                                           AcquisitionGeometry.VERTICAL,
+                                           AcquisitionGeometry.HORIZONTAL])
+        geoms_i = pbalg.pb_setup_geometry_from_acquisition(ad.as_array(),
+                                                    angles,
+                                                    center_of_rotation,
+                                                    voxel_per_pixel )
+        
+        counter+=1
+        
+        if counter < 4:
+            print (geoms, geoms_i)
+            if (not ( geoms_i == geoms )):
+                print ("not equal and {} {} {}".format(counter, geoms['output_volume_z'], geoms_i['output_volume_z']))
+                X = max(geoms['output_volume_x'], geoms_i['output_volume_x'])
+                Y = max(geoms['output_volume_y'], geoms_i['output_volume_y'])
+                Z = max(geoms['output_volume_z'], geoms_i['output_volume_z'])
+                return setupCCPiGeometries(X,Y,Z,angles, counter)
+            else:
+                print ("happy now {} {} {}".format(counter, geoms['output_volume_z'], geoms_i['output_volume_z']))
+                
+                return geoms
         else:
-            return geoms
-    else:
-        return geoms_i
+            return geoms_i
 
 
 class CCPiForwardProjector(DataProcessor):
@@ -102,7 +106,7 @@ class CCPiForwardProjector(DataProcessor):
             raise ValueError("Expected input dimensions is 2 or 3, got {0}"\
                              .format(dataset.number_of_dimensions))
 
-    def process(self):
+    def process(self, out=None):
         
         volume = self.get_input()
         volume_axes = volume.get_data_axes_order(new_order=self.default_image_axes_order)
@@ -115,12 +119,15 @@ class CCPiForwardProjector(DataProcessor):
             pixels = pbalg.pb_forward_project(volume.as_array(), 
                                                   self.acquisition_geometry.angles, 
                                                   pixel_per_voxel)
-            out = AcquisitionData(geometry=self.acquisition_geometry, 
-                                  label_dimensions=self.default_acquisition_axes_order)
-            out.fill(pixels)
+            
+            out = self.acquisition_geometry.allocate(
+                dimension_labels=self.output_axes_order)
             out_axes = out.get_data_axes_order(new_order=self.output_axes_order)
             if not out_axes == [0,1,2]:
-                out.array = numpy.transpose(out.array, out_axes)
+                print ("transpose")
+                pixels = numpy.transpose(pixels, out_axes)
+            out.fill(pixels)
+            
             return out
         else:
             raise ValueError('Cannot process cone beam')
@@ -146,7 +153,8 @@ class CCPiBackwardProjector(DataProcessor):
                  output_axes_order=None):
         if output_axes_order is None:
             # default ccpi projector image storing order
-            output_axes_order = ['horizontal_x','horizontal_y','vertical']
+            #output_axes_order = ['horizontal_x','horizontal_y','vertical']
+            output_axes_order = ['vertical', 'horizontal_y','horizontal_x',]
         kwargs = {
                   'image_geometry'       : image_geometry, 
                   'acquisition_geometry' : acquisition_geometry,
@@ -165,7 +173,7 @@ class CCPiBackwardProjector(DataProcessor):
             raise ValueError("Expected input dimensions is 2 or 3, got {0}"\
                              .format(dataset.number_of_dimensions))
 
-    def process(self):
+    def process(self, out=None):
         projections = self.get_input()
         projections_axes = projections.get_data_axes_order(new_order=self.default_acquisition_axes_order)
         if not projections_axes == [0,1,2]:
@@ -185,9 +193,7 @@ class CCPiBackwardProjector(DataProcessor):
                          center_of_rotation, 
                          pixel_per_voxel
                          )
-            out = ImageData(geometry=self.image_geometry, 
-                            dimension_labels=self.default_image_axes_order)
-            
+            out = self.image_geometry.allocate()
             out_axes = out.get_data_axes_order(new_order=self.output_axes_order)
             if not out_axes == [0,1,2]:
                 back = numpy.transpose(back, out_axes)
@@ -231,7 +237,7 @@ class AcquisitionDataPadder(DataProcessor):
             raise ValueError("Expected input dimensions is 2 or 3, got {0}"\
                              .format(dataset.number_of_dimensions))
 
-    def process(self):
+    def process(self, out=None):
         projections = self.get_input()
         w = projections.get_dimension_size('horizontal')
         delta = w - 2 * self.center_of_rotation

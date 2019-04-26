@@ -32,7 +32,8 @@ if  cil_version == '':
 setup(
     name="ccpi-plugins",
     version=cil_version,
-    packages=['ccpi' , 'ccpi.plugins'],
+    packages=['ccpi' , 'ccpi.plugins', 'ccpi.plugins.operators',
+        'ccpi.plugins.processors'],
 
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine

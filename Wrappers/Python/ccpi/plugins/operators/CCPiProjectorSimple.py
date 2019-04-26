@@ -18,7 +18,7 @@
 #   limitations under the License.
 
 import numpy
-from ccpi.optimisation.ops import Operator, PowerMethodNonsquare
+from ccpi.optimisation.operators import Operator, LinearOperator
 from ccpi.framework import ImageData, DataContainer , \
                            ImageGeometry, AcquisitionGeometry
 from ccpi.plugins.processors import CCPiBackwardProjector, \
@@ -39,8 +39,7 @@ class CCPiProjectorSimple(Operator):
             raise TypeError('Can only handle parallel beam')
         
         # set-up the geometries if compatible
-        geoms = setupCCPiGeometries(geomv.voxel_num_x,geomv.voxel_num_y, 
-                                    geomv.voxel_num_z, geomp.angles, 0)
+        geoms = setupCCPiGeometries(geomv, geomp, 0)
         
 
         vg = ImageGeometry(voxel_num_x=geoms['output_volume_x'],
@@ -74,7 +73,8 @@ class CCPiProjectorSimple(Operator):
         
         self.bp = CCPiBackwardProjector(image_geometry=vg,
                                     acquisition_geometry=pg,
-                                    output_axes_order=['horizontal_x','horizontal_y','vertical'])
+                                    output_axes_order=[ ImageGeometry.HORIZONTAL_X,
+                 ImageGeometry.HORIZONTAL_Y, ImageGeometry.VERTICAL])
                 
         # Initialise empty for singular value.
         self.s1 = None
@@ -85,17 +85,21 @@ class CCPiProjectorSimple(Operator):
         return True
 
     def direct(self, image_data, out=None):
-        self.fp.set_input(image_data)
+        self.fp.set_input(image_data.subset(dimensions=['horizontal_x','horizontal_y','vertical']))
         if out is None:
             out = self.fp.get_output()
+            #return out.subset(dimensions=[AcquisitionGeometry.ANGLE , AcquisitionGeometry.VERTICAL ,
+            #     AcquisitionGeometry.HORIZONTAL])
             return out
         else:
             out.fill(self.fp.get_output())
 
     def adjoint(self, acquisition_data, out=None):
-        self.bp.set_input(acquisition_data)
+        self.bp.set_input(acquisition_data.subset(dimensions=['angle','vertical','horizontal']))
         if out is None:
             out = self.bp.get_output()
+            #return out.subset(dimensions=[ImageGeometry.VERTICAL, ImageGeometry.HORIZONTAL_Y,
+            #     ImageGeometry.HORIZONTAL_X])
             return out
         else:
             out.fill(self.bp.get_output())
@@ -103,8 +107,13 @@ class CCPiProjectorSimple(Operator):
     #def delete(self):
     #    astra.data2d.delete(self.proj_id)
     
-    def get_max_sing_val(self):
-        a = PowerMethodNonsquare(self,10)
+    def norm(self):
+        x0 = self.domain_geometry().allocate(ImageGeometry.RANDOM,
+        #dimension_labels=['horizontal_x', 'horizontal_y','vertical']
+        )
+        print (x0.dimension_labels)
+
+        a = LinearOperator.PowerMethod(self,10, x0)
         self.s1 = a[0] 
         return self.s1
     
@@ -133,8 +142,8 @@ class CCPiProjectorSimple(Operator):
             self.vg.center_x,
             self.vg.center_y,
             self.vg.center_z,
-            self.vg.channels,
-            ['horizontal_x','horizontal_y','vertical'] )
+            self.vg.channels
+            )
 
     def range_geometry(self):
         return AcquisitionGeometry(self.ag.geom_type,
@@ -147,5 +156,5 @@ class CCPiProjectorSimple(Operator):
                                self.ag.dist_source_center,
                                self.ag.dist_center_detector,
                                self.ag.channels,
-                               ['angle','vertical','horizontal'])
+                               )
 
