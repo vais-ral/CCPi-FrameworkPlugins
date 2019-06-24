@@ -30,7 +30,7 @@ requirements:
 
   run:
     - python
-    - numpy
+    - {{ pin_compatible('numpy') }}
     - ccpi-framework
     - ccpi-reconstruction
     - ccpi-regulariser
