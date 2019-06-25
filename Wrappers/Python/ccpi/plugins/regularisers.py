@@ -21,7 +21,7 @@
 from ccpi.filters import regularisers
 from ccpi.filters.cpu_regularisers import TV_ENERGY
 from ccpi.framework import DataContainer
-from ccpi.optimisation.funcs import Function
+from ccpi.optimisation.functions import Function
 import numpy as np
 
 
