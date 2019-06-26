@@ -43,7 +43,7 @@ class ROF_TV(Function):
                 'number_of_iterations' :self.iterationsTV ,\
                 'time_marching_parameter':self.time_marchstep}
         
-        res = regularisers.ROF_TV(pars['input'], 
+        res , info = regularisers.ROF_TV(pars['input'], 
               pars['regularization_parameter'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'], self.device)
@@ -78,7 +78,7 @@ class FGP_TV(Function):
                 'nonneg': self.nonnegativity ,\
                 'printingOut': self.printing}
         
-        res = regularisers.FGP_TV(pars['input'], 
+        res , info = regularisers.FGP_TV(pars['input'], 
               pars['regularization_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
@@ -114,7 +114,7 @@ class SB_TV(Function):
                 'methodTV': self.methodTV ,\
                 'printingOut': self.printing}
         
-        res = regularisers.SB_TV(pars['input'], 
+        res , info = regularisers.SB_TV(pars['input'], 
               pars['regularization_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
