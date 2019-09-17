@@ -21,11 +21,9 @@ from ccpi.filters import regularisers
 from ccpi.filters.cpu_regularisers import TV_ENERGY
 from ccpi.optimisation.functions import Function
 import numpy as np
-#import pSTIR as pet
-from pSTIR import ImageData as SIRF_ImageData
-from ccpi.framework import ImageData as CIL_ImageData
 
 class ROF_TV(Function):
+    
     def __init__(self,lambdaReg,iterationsTV,tolerance,time_marchstep,device):
         # set parameters
         self.lambdaReg = lambdaReg
@@ -35,11 +33,13 @@ class ROF_TV(Function):
         self.tolerance = tolerance
         
     def __call__(self,x):
+        
         # evaluate objective function of TV gradient
         EnergyValTV = TV_ENERGY(np.asarray(x.as_array(), dtype=np.float32), np.asarray(x.as_array(), dtype=np.float32), self.lambdaReg, 2)
         return 0.5*EnergyValTV[0]
     
-    def proximal(self,x,tau, out = None):
+    def proximal(self, x, tau, out = None):
+        
         pars = {'algorithm' : ROF_TV, \
                'input' : np.asarray(x.as_array(), dtype=np.float32),\
                 'regularization_parameter':self.lambdaReg*tau, \
@@ -59,11 +59,12 @@ class ROF_TV(Function):
         else:
             out = x.copy()
             out.fill(res)
-        return out
+            return out
     
 class FGP_TV(Function):
     
-    def __init__(self,lambdaReg,iterationsTV,tolerance,methodTV,nonnegativity,printing,device):
+    def __init__(self, lambdaReg, iterationsTV, tolerance, methodTV, nonnegativity, printing, device):
+        
         # set parameters
         self.lambdaReg = lambdaReg
         self.iterationsTV = iterationsTV
@@ -79,6 +80,7 @@ class FGP_TV(Function):
         return 0.5*EnergyValTV[0]
     
     def proximal(self, x, tau, out = None):
+        
         pars = {'algorithm' : FGP_TV, \
                'input' : np.asarray(x.as_array(), dtype=np.float32),\
                 'regularization_parameter':self.lambdaReg*tau, \
@@ -104,17 +106,7 @@ class FGP_TV(Function):
             tmp = x.copy()
             tmp.fill(res)
             return tmp
-            
-#            if isinstance(x, SIRF_ImageData):
-#                tmp = x.copy()
-#                tmp.fill(res)
-#                return tmp
-#            elif isinstance(x, CIL_ImageData):
                 
-            #out = x.copy()
-            #out.fill(res)
-        #return out
-    
     def convex_conjugate(self,x):        
         return 0.0
     
@@ -133,6 +125,7 @@ class TGV(Function):
         
     
     def __call__(self,x):
+        
         # TODO this is not correct, need a TGV energy same as TV
         return 0.0
     
@@ -166,22 +159,16 @@ class TGV(Function):
         else:
             out = x.copy()
             out.fill(res)
-        return out        
+            return out        
     
     def convex_conjugate(self, x):
+        
         # TODO this is not correct
         return 0.0
 
         
 class LLT_ROF(Function):
     
-#    pars = {'algorithm' : LLT_ROF, \
-#        'input' : noisyVol,\
-#        'regularisation_parameterROF':0.01, \
-#        'regularisation_parameterLLT':0.008, \
-#        'number_of_iterations' : 500 ,\
-#        'time_marching_parameter' :0.001 ,\
-#        'tolerance_constant':1e-06}
     
     def __init__(self, regularisation_parameterROF, 
                        regularisation_parameterLLT,
@@ -195,7 +182,8 @@ class LLT_ROF(Function):
         self.device = device 
         
     def __call__(self,x):
-        # TODO this is not correct, need a TGV energy same as TV
+        
+        # TODO this is not correct
         return 0.0        
     
     def proximal(self, x, tau, out=None):
@@ -228,16 +216,18 @@ class LLT_ROF(Function):
         else:
             out = x.copy()
             out.fill(res)
-        return out        
+            return out        
     
     def convex_conjugate(self, x):
+        
         # TODO this is not correct
         return 0.0    
     
        
-    
 class SB_TV(Function):
-    def __init__(self,lambdaReg,iterationsTV,tolerance,methodTV,printing,device):
+    
+    def __init__(self, lambdaReg, iterationsTV, tolerance, methodTV, printing, device):
+        
         # set parameters
         self.lambdaReg = lambdaReg
         self.iterationsTV = iterationsTV
@@ -273,7 +263,7 @@ class SB_TV(Function):
         else:
             out = x.copy()
             out.fill(res)
-        return out
+            return out
 
 
 class FGP_dTV(Function):
@@ -292,10 +282,11 @@ class FGP_dTV(Function):
         
     def __call__(self,x):
         
-        # evaluate objective function of TV gradient
+        # TODO this is not correct
         return 0.0
     
-    def proximal(self,x,tau, out=None):
+    def proximal(self, x, tau, out=None):
+        
         pars = {'algorithm' : FGP_dTV, \
                'input' : np.asarray(x.as_array(), dtype=np.float32),\
                'ref_data' : np.asarray(x.as_array(), dtype=np.float32),\
@@ -323,7 +314,7 @@ class FGP_dTV(Function):
         else:
             out = x.copy()
             out.fill(res)
-        return out
+            return out
 
 class TNV(Function):
     
@@ -337,26 +328,27 @@ class TNV(Function):
         
     def __call__(self,x):
         
-        # evaluate objective function of TV gradient
+        #TODO this is not correct
         return 0.0
     
-    def proximal(self,x,tau, out=None):
+    def proximal(self, x, tau, out = None):
+        
         pars = {'algorithm' : TNV, \
                'input' : np.asarray(x.as_array(), dtype=np.float32),\
                 'regularisation_parameter':self.regularisation_parameter, \
                 'number_of_iterations' :self.iterationsTNV,\
                 'tolerance_constant':self.tolerance}
         
-        res   = regularisers.TNV(pars['input'], 
+        res, info   = regularisers.TNV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'])
         
-        #self.info = info
+        self.info = info
     
         if out is not None:
             out.fill(res)
         else:
             out = x.copy()
             out.fill(res)
-        return out
+            return out
