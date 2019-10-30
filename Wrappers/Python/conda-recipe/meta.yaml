@@ -25,17 +25,13 @@ test:
 requirements:
   build:
     - python
-    - numpy {{ numpy }}
     - setuptools
 
   run:
-    - python
-    - {{ pin_compatible('numpy') }}
     - ccpi-framework
     - ccpi-reconstruction
     - ccpi-regulariser
-    - matplotlib
-	
+    	
 about:
   home: http://www.ccpi.ac.uk
   license:  Apache 2.0 License
