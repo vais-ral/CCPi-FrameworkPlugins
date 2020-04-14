@@ -51,5 +51,5 @@ class TestDataProcessor(unittest.TestCase):
 
         padded_axis = padded_data.shape[idx]
         self.assertEqual(padded_axis , math.ceil(cf.get_output() * 2))
-        numpy.save("pippo.npy" , padded_data.as_array())
+        # numpy.save("pippo.npy" , padded_data.as_array())
     
