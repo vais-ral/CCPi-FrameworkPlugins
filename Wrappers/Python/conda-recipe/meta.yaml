@@ -4,6 +4,7 @@ package:
 
 
 build:
+  skip: True # [py==38 and np==115]
   preserve_egg_dir: False
   script_env:
     - CIL_VERSION   
@@ -25,12 +26,12 @@ test:
 requirements:
   build:
     - python
-    - numpy {{ numpy }}
     - setuptools
+    - numpy {{ numpy }}
 
   run:
     - python
-    - {{ pin_compatible('numpy') }}
+    - {{ pin_compatible('numpy', min_pin='x.x', max_pin='x.x') }}
     - ccpi-framework
     - ccpi-reconstruction >=19.10
     - ccpi-regulariser
