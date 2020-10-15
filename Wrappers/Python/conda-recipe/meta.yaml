@@ -32,9 +32,9 @@ requirements:
   run:
     - python
     - {{ pin_compatible('numpy', min_pin='x.x', max_pin='x.x') }}
-    - ccpi-framework
-    - ccpi-reconstruction >=19.10
-    - ccpi-regulariser
+    - ccpi-framework >=20.09
+    - ccpi-reconstruction >=20.09
+    - ccpi-regulariser >=20.09
     - matplotlib
 	
 about:
