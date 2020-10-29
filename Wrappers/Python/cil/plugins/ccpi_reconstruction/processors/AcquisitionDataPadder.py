@@ -4,7 +4,7 @@ Created on Tue Apr 30 13:43:52 2019
 
 @author: ofn77899
 """
-from ccpi.framework import DataProcessor, DataContainer, AcquisitionData,\
+from cil.framework import DataProcessor, DataContainer, AcquisitionData,\
  AcquisitionGeometry, ImageGeometry, ImageData
 from ccpi.reconstruction.parallelbeam import alg as pbalg
 import numpy

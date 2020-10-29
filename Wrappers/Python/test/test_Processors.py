@@ -8,16 +8,16 @@ Created on Tue Apr 30 14:39:20 2019
 import sys
 import unittest
 import numpy
-from ccpi.framework import DataProcessor
-from ccpi.framework import DataContainer
-from ccpi.framework import ImageData
-from ccpi.framework import AcquisitionData
-from ccpi.framework import ImageGeometry
-from ccpi.framework import AcquisitionGeometry
+from cil.framework import DataProcessor
+from cil.framework import DataContainer
+from cil.framework import ImageData
+from cil.framework import AcquisitionData
+from cil.framework import ImageGeometry
+from cil.framework import AcquisitionGeometry
 from timeit import default_timer as timer
-from ccpi.io.reader import NexusReader
-from ccpi.processors import CenterOfRotationFinder
-from ccpi.plugins.processors import AcquisitionDataPadder
+from cil.io.reader import NexusReader
+from cil.processors import CenterOfRotationFinder
+from cil.plugins.ccpi_reconstruction.processors import AcquisitionDataPadder
 import wget
 import os
 import math
@@ -51,5 +51,5 @@ class TestDataProcessor(unittest.TestCase):
 
         padded_axis = padded_data.shape[idx]
         self.assertEqual(padded_axis , math.ceil(cf.get_output() * 2))
-        numpy.save("pippo.npy" , padded_data.as_array())
+        #numpy.save("pippo.npy" , padded_data.as_array())
     

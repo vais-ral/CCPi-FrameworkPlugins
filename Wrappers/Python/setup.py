@@ -32,8 +32,9 @@ if  cil_version == '':
 setup(
     name="ccpi-plugins",
     version=cil_version,
-    packages=['ccpi' , 'ccpi.plugins', 'ccpi.plugins.operators',
-        'ccpi.plugins.processors'],
+    packages=['cil.plugins.ccpi_regularisation.functions',
+              'cil.plugins.ccpi_reconstruction.operators',
+              'cil.plugins.ccpi_reconstruction.processors'],
 
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
@@ -53,7 +54,7 @@ setup(
     description='CCPi Core Imaging Library - Python Framework Plugins Module',
     license="Apache v2.0",
     keywords="Python Framework Plugins",
-    url="http://www.ccpi.ac.uk",   # project home page, if any
+    url="http://www.ccpi.ac.uk/cil",   # project home page, if any
 
     # could also include long_description, download_url, classifiers, etc.
 )

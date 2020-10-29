@@ -18,10 +18,10 @@
 #   limitations under the License.
 
 import numpy
-from ccpi.optimisation.operators import Operator, LinearOperator
-from ccpi.framework import ImageData, DataContainer , \
+from cil.optimisation.operators import Operator, LinearOperator
+from cil.framework import ImageData, DataContainer , \
                            ImageGeometry, AcquisitionGeometry
-from ccpi.plugins.processors import CCPiBackwardProjector, \
+from cil.plugins.processors import CCPiBackwardProjector, \
                                     CCPiForwardProjector , setupCCPiGeometries
         
 

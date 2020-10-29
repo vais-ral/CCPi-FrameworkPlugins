@@ -160,13 +160,7 @@ class TGV(Function):
         
 class LLT_ROF(Function):
     
-#    pars = {'algorithm' : LLT_ROF, \
-#        'input' : noisyVol,\
-#        'regularisation_parameterROF':0.01, \
-#        'regularisation_parameterLLT':0.008, \
-#        'number_of_iterations' : 500 ,\
-#        'time_marching_parameter' :0.001 ,\
-#        'tolerance_constant':1e-06}
+
     
     def __init__(self, regularisation_parameterROF, 
                        regularisation_parameterLLT,

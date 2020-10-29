@@ -17,7 +17,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License
 
-from ccpi.framework import DataProcessor, AcquisitionData,\
+from cil.framework import DataProcessor, AcquisitionData,\
      AcquisitionGeometry, ImageGeometry, ImageData
 from ccpi.reconstruction.parallelbeam import alg as pbalg
 import numpy
